@@ -42,7 +42,8 @@ namespace Colipars.Test
         [TestMethod]
         public void DontMapOnError()
         {
-            Parsers.Setup.Attributes<ListCommand>().Parse("ListCommand -n 10".Split()).Map((ListCommand c) => { Assert.Fail("Called map"); return 1; });
+            //MinimumCount is 3
+            Parsers.Setup.Attributes<ListCommand>().Parse("ListCommand -n 10".Split()).Map((ListCommand c) => { Assert.Fail("Called map even though there is an error"); return 1; });
         }
 
         [Verb("required")]

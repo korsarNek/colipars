@@ -252,9 +252,9 @@ namespace Colipars.Attribute
         /// If the help was shown, a InvalidOperationException gets thrown.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        public T GetVerbObject<T>()
+        public T GetCustomObject<T>()
         {
-            return (T)GetVerbObject();
+            return (T)GetCustomObject();
         }
 
         /// <summary>
@@ -262,7 +262,7 @@ namespace Colipars.Attribute
         /// If the help was shown, a InvalidOperationException gets thrown.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        public object GetVerbObject()
+        public object GetCustomObject()
         {
             if (HelpRequested)
                 throw new InvalidOperationException("Can't request the verb object, user requested showing the help.");
