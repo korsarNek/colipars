@@ -8,17 +8,20 @@ namespace Colipars
     //TODO: put Settings and Configuration together
     public class Settings
     {
-        private IReadOnlyDictionary<string, IEnumerable<IOption>> _verbsAndOptions;
+        private IReadOnlyDictionary<IVerb, IEnumerable<IOption>> _verbsAndOptions;
 
-        public IEnumerable<string> Verbs { get => _verbsAndOptions.Keys; }
+        public IEnumerable<IVerb> Verbs { get => _verbsAndOptions.Keys; }
 
-        public Settings(IReadOnlyDictionary<string, IEnumerable<IOption>> verbsAndOptions)
+        public Settings(IReadOnlyDictionary<IVerb, IEnumerable<IOption>> verbsAndOptions)
         {
             _verbsAndOptions = verbsAndOptions;
         }
 
-        public IEnumerable<IOption> GetOptions(string verb)
+        public IEnumerable<IOption> GetOptions(IVerb verb)
         {
+            if (verb == null)
+                throw new ArgumentNullException(nameof(verb));
+
             if (!_verbsAndOptions.ContainsKey(verb))
                 throw new KeyNotFoundException($"The verb \"{verb}\" is unknown.");
 

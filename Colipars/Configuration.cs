@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Colipars.Internal;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -14,7 +15,7 @@ namespace Colipars
 
         public CultureInfo CultureInfo { get; set; } = CultureInfo.InvariantCulture;
 
-        public string DefaultVerb { get; set; }
+        public IVerb DefaultVerb { get; set; }
 
         public int HelpExitCode { get; set; } = 0;
 

@@ -10,7 +10,7 @@ namespace Colipars.Attribute
     {
         private object _handledOption;
 
-        public AttributeParseResult(string verb, object handledOption)
+        public AttributeParseResult(IVerb verb, object handledOption)
             : base(verb, null, null, helpRequested: false)
         {
             _handledOption = handledOption ?? throw new ArgumentNullException(nameof(handledOption));
@@ -20,12 +20,12 @@ namespace Colipars.Attribute
         /// Constructor in case help was requested.
         /// </summary>
         /// <param name="verb"></param>
-        public AttributeParseResult(string verb)
+        public AttributeParseResult(IVerb verb)
             : base(verb, null, null, helpRequested: true)
         {
         }
 
-        public AttributeParseResult(string verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
+        public AttributeParseResult(IVerb verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
             : base(verb, errorHandler, errors, helpRequested: false)
         {
 

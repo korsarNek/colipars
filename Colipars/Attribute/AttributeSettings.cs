@@ -10,22 +10,22 @@ namespace Colipars.Attribute
 {
     public class AttributeSettings : Settings
     {
-        IReadOnlyDictionary<string, IEnumerable<InstanceOption>> _verbsAndOptions;
-        IReadOnlyDictionary<string, ConstructorInfo> _verbConstructors;
+        IReadOnlyDictionary<IVerb, IEnumerable<InstanceOption>> _verbsAndOptions;
+        IReadOnlyDictionary<IVerb, ConstructorInfo> _verbConstructors;
 
-        public AttributeSettings(IReadOnlyDictionary<string, IEnumerable<InstanceOption>> verbsAndOptions, IReadOnlyDictionary<string, ConstructorInfo> verbConstructors)
-            : base(new ReadOnlyDictionary<string, IEnumerable<IOption>>(verbsAndOptions.ToDictionary((x) => x.Key, (x) => x.Value.Select((o) => o.Option))) ?? throw new ArgumentNullException(nameof(verbsAndOptions)))
+        public AttributeSettings(IReadOnlyDictionary<IVerb, IEnumerable<InstanceOption>> verbsAndOptions, IReadOnlyDictionary<IVerb, ConstructorInfo> verbConstructors)
+            : base(new ReadOnlyDictionary<IVerb, IEnumerable<IOption>>(verbsAndOptions.ToDictionary((x) => x.Key, (x) => x.Value.Select((o) => o.Option))) ?? throw new ArgumentNullException(nameof(verbsAndOptions)))
         {
             _verbsAndOptions = verbsAndOptions;
             _verbConstructors = verbConstructors;
         }
 
-        public IEnumerable<InstanceOption> GetInstanceOptions(string verb)
+        public IEnumerable<InstanceOption> GetInstanceOptions(IVerb verb)
         {
             return _verbsAndOptions[verb];
         }
 
-        public ConstructorInfo GetConstructor(string verb)
+        public ConstructorInfo GetConstructor(IVerb verb)
         {
             return _verbConstructors[verb];
         }

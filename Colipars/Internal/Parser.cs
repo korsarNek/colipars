@@ -19,8 +19,6 @@ namespace Colipars.Internal
 
         public TResult Parse(IEnumerable<string> args)
         {
-            string selectedVerb = null;
-
             var firstParam = args.FirstOrDefault();
             if (firstParam == null)
                 return CreateErrorResult(null, new VerbIsMissingError());
@@ -28,7 +26,8 @@ namespace Colipars.Internal
             if (Configuration.HelpArguments.Contains(firstParam))
                 return ShowHelp();
 
-            if (!Settings.Verbs.Contains(firstParam))
+            IVerb selectedVerb = Settings.Verbs.FirstOrDefault((x) => x.Name == firstParam);
+            if (selectedVerb == null)
             {
                 if (Configuration.DefaultVerb != null)
                     selectedVerb = Configuration.DefaultVerb;
@@ -37,7 +36,6 @@ namespace Colipars.Internal
             }
             else
             {
-                selectedVerb = firstParam;
                 args = args.Skip(1);
             }
 
@@ -47,18 +45,18 @@ namespace Colipars.Internal
             return ProcessArguments(selectedVerb, args);
         }
         
-        public abstract TResult ShowHelp(string verb);
+        public abstract TResult ShowHelp(IVerb verb);
 
         public virtual TResult ShowHelp()
         {
             return ShowHelp(null);
         }
 
-        protected abstract TResult ProcessArguments(string verb, IEnumerable<string> arguments);
+        protected abstract TResult ProcessArguments(IVerb verb, IEnumerable<string> arguments);
 
-        protected abstract TResult CreateErrorResult(string verb, IEnumerable<IError> errors);
+        protected abstract TResult CreateErrorResult(IVerb verb, IEnumerable<IError> errors);
 
-        protected TResult CreateErrorResult(string verb, IError error)
+        protected TResult CreateErrorResult(IVerb verb, IError error)
         {
             if (error == null)
                 throw new ArgumentNullException(nameof(error));

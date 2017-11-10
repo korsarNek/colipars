@@ -22,10 +22,10 @@ namespace Colipars.Console
             _parameterFormatter = parameterFormatter;
         }
 
-        public void Present(string verb)
+        public void Present(IVerb verb)
         {
             WriteLine("usage: [verb] [parameters]");
-            WriteLine($"{verb} parameters:");
+            WriteLine($"{verb.Name} parameters:");
 
             var options = Settings.GetOptions(verb);
             foreach (var option in options)
@@ -47,7 +47,7 @@ namespace Colipars.Console
 
             foreach (var verb in Settings.Verbs)
             {
-                WriteLine("\t" + verb);
+                WriteLine("\t" + verb.Name + "\t" + verb.Description);//TODO: output description
             }
 
             WriteLine();

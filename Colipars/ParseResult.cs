@@ -8,7 +8,7 @@ namespace Colipars
 {
     public class ParseResult
     {
-        public string Verb { get; }
+        public IVerb Verb { get; }
         public IEnumerable<IError> Errors { get; }
         public bool HelpRequested { get; } = false;
 
@@ -33,7 +33,7 @@ namespace Colipars
 
         protected const int EXIT_CODE_HELP = 0;
 
-        public ParseResult(string verb, IErrorHandler errorHandler, IEnumerable<IError> errors, bool helpRequested)
+        public ParseResult(IVerb verb, IErrorHandler errorHandler, IEnumerable<IError> errors, bool helpRequested)
         {
             Verb = verb;
             Errors = errors ?? new IError[0];
@@ -41,7 +41,7 @@ namespace Colipars
             HelpRequested = helpRequested;
         }
 
-        public virtual int Map(Func<string, int> verbHandler, Func<IEnumerable<IError>, int> errorsHandler)
+        public virtual int Map(Func<IVerb, int> verbHandler, Func<IEnumerable<IError>, int> errorsHandler)
         {
             if (verbHandler == null) throw new ArgumentNullException(nameof(verbHandler));
             if (errorsHandler == null) throw new ArgumentNullException(nameof(errorsHandler));
@@ -55,7 +55,7 @@ namespace Colipars
             return verbHandler(Verb);
         }
 
-        public int Map(Func<string, int> verbHandler)
+        public int Map(Func<IVerb, int> verbHandler)
         {
             return Map(verbHandler, ErrorHandlerFunc);
         }

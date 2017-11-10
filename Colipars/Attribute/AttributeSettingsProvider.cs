@@ -25,8 +25,8 @@ namespace Colipars.Attribute
 
         public AttributeSettings GenerateSettings()
         {
-            var verbSettings = new Dictionary<string, IEnumerable<InstanceOption>>();
-            var verbConstructors = new Dictionary<string, ConstructorInfo>();
+            var verbSettings = new Dictionary<IVerb, IEnumerable<InstanceOption>>();
+            var verbConstructors = new Dictionary<IVerb, ConstructorInfo>();
             foreach (var type in _optionTypes)
             {
                 //check if type is valid
@@ -37,9 +37,9 @@ namespace Colipars.Attribute
                 if (constructor == null)
                     throw new InvalidOperationException($"\"{type}\" doesn't have a public parameterless constructor.");
 
-                string verbName = GetVerbFromType(type);
+                var verb = GetVerbFromType(type);
 
-                verbConstructors.Add(verbName, constructor);
+                verbConstructors.Add(verb, constructor);
 
                 //get options
                 List<InstanceOption> instanceOptions = new List<InstanceOption>();
@@ -56,10 +56,10 @@ namespace Colipars.Attribute
                         instanceOptions.Add(new InstanceOption(property, option));
                 }
 
-                verbSettings.Add(verbName, instanceOptions);
+                verbSettings.Add(verb, instanceOptions);
             }
 
-            return new AttributeSettings(new ReadOnlyDictionary<string, IEnumerable<InstanceOption>>(verbSettings), new ReadOnlyDictionary<string, ConstructorInfo>(verbConstructors));
+            return new AttributeSettings(new ReadOnlyDictionary<IVerb, IEnumerable<InstanceOption>>(verbSettings), new ReadOnlyDictionary<IVerb, ConstructorInfo>(verbConstructors));
 
         }
 
@@ -74,17 +74,9 @@ namespace Colipars.Attribute
             return option;
         }
 
-        public static string GetVerbFromType(Type type)
+        public static IVerb GetVerbFromType(Type type)
         {
-            string verbName = type.Name;
-
-            var verb = type.GetCustomAttribute<VerbAttribute>();
-            if (verb?.Name != null)
-            {
-                verbName = verb.Name;
-            }
-
-            return verbName;
+            return type.GetCustomAttribute<VerbAttribute>() ?? new VerbAttribute(type.Name);
         }
     }
 }

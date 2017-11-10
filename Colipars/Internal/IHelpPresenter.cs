@@ -6,7 +6,7 @@ namespace Colipars.Internal
 {
     public interface IHelpPresenter
     {
-        void Present(string verb);
+        void Present(IVerb verb);
 
         void Present();
     }

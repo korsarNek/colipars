@@ -32,7 +32,7 @@ namespace Colipars.Attribute
             return ShowHelp(AttributeSettingsProvider.GetVerbFromType(typeof(T)));
         }
 
-        public override AttributeParseResult ShowHelp(string verb)
+        public override AttributeParseResult ShowHelp(IVerb verb)
         {
             _helpPresenter.Present(verb);
 
@@ -46,12 +46,12 @@ namespace Colipars.Attribute
             return new AttributeParseResult(null);
         }
 
-        protected override AttributeParseResult CreateErrorResult(string verb, IEnumerable<IError> errors)
+        protected override AttributeParseResult CreateErrorResult(IVerb verb, IEnumerable<IError> errors)
         {
             return new AttributeParseResult(verb, Configuration.Services.GetService<IErrorHandler>(), errors);
         }
 
-        protected override AttributeParseResult ProcessArguments(string verb, IEnumerable<string> arguments)
+        protected override AttributeParseResult ProcessArguments(IVerb verb, IEnumerable<string> arguments)
         {
             var options = Settings.GetInstanceOptions(verb);
             if (options == null)
@@ -182,7 +182,7 @@ namespace Colipars.Attribute
             return flagOptions.FirstOrDefault((o) => o.Option.Name == parameterName || parameterName.StartsWith(o.Option.Alias));
         }
 
-        protected virtual AttributeParseResult CreateParseResult(string verb, IEnumerable<OptionAndValue> providedOptions)
+        protected virtual AttributeParseResult CreateParseResult(IVerb verb, IEnumerable<OptionAndValue> providedOptions)
         {
             var instance = Settings.GetConstructor(verb).Invoke(new object[0]);
             var instanceOptions = Settings.GetInstanceOptions(verb);

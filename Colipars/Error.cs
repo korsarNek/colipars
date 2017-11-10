@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Colipars.Internal;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,7 +12,7 @@ namespace Colipars
 
     public interface IVerbError : IError
     {
-        string Verb { get; }
+        IVerb Verb { get; }
     }
 
     public class VerbIsMissingError : IError
@@ -45,10 +46,10 @@ namespace Colipars
 
     public class RequiredParameterMissingError : IVerbError
     {
-        public string Verb { get; }
+        public IVerb Verb { get; }
         public string ParameterName { get; }
 
-        public RequiredParameterMissingError(string verb, string parameterName)
+        public RequiredParameterMissingError(IVerb verb, string parameterName)
         {
             Verb = verb ?? throw new ArgumentNullException(nameof(verb));
             ParameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
@@ -59,11 +60,11 @@ namespace Colipars
 
     public class NotEnoughElementsError : IVerbError
     {
-        public string Verb { get; }
+        public IVerb Verb { get; }
         public string ParameterName { get; }
         public int MinimumCount { get; }
 
-        public NotEnoughElementsError(string verb, string parameterName, int minimumCount)
+        public NotEnoughElementsError(IVerb verb, string parameterName, int minimumCount)
         {
             Verb = verb;
             ParameterName = parameterName;
@@ -75,11 +76,11 @@ namespace Colipars
 
     public class OptionForArgumentNotFoundError : IVerbError
     {
-        public string Verb { get; }
+        public IVerb Verb { get; }
         public string Argument { get; }
         public int ArgumentPosition { get; }
 
-        public OptionForArgumentNotFoundError(string verb, string argument, int argumentPosition)
+        public OptionForArgumentNotFoundError(IVerb verb, string argument, int argumentPosition)
         {
             Verb = verb ?? throw new ArgumentNullException(nameof(verb));
             Argument = argument ?? throw new ArgumentNullException(nameof(argument));

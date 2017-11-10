@@ -127,7 +127,7 @@ namespace Colipars.Test
             CollectionAssert.AreEqual(listCommand.Numbers.ToArray(), new[] { new Wrapper() { number = 10 }, new Wrapper() { number = 20 } });
         }
 
-        [Verb("test")]
+        [Verb("test", Description = "Example description")]
         class Command
         {
             [NamedOption("value", Description = "Any random value")]
@@ -240,9 +240,9 @@ namespace Colipars.Test
                 StringBuilder = stringBuilder;
             }
 
-            public void Present(string verb)
+            public void Present(IVerb verb)
             {
-                StringBuilder.Append($"Showed help for \"{verb}\"");
+                StringBuilder.Append($"Showed help for \"{verb.Name}\"");
             }
 
             public void Present()
