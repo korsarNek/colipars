@@ -3,9 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CliParser", "Colipars\Colipars.csproj", "{6D4496AA-66F0-4B5F-8AF2-FA0C3A32AFA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Colipars", "Colipars\Colipars.csproj", "{6D4496AA-66F0-4B5F-8AF2-FA0C3A32AFA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliParserTest", "ColiparsTest\ColiparsTest.csproj", "{56BF45ED-CEEB-4B71-95FD-5FE3F312BA54}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColiparsTest", "ColiparsTest\ColiparsTest.csproj", "{56BF45ED-CEEB-4B71-95FD-5FE3F312BA54}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{715263AB-B8A9-4B88-A824-6E35B52B0D4D}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
