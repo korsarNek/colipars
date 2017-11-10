@@ -39,6 +39,12 @@ namespace Colipars.Test
             Assert.IsInstanceOfType(errors.First(), typeof(NotEnoughElementsError));
         }
 
+        [TestMethod]
+        public void DontMapOnError()
+        {
+            Parsers.Setup.Attributes<ListCommand>().Parse("ListCommand -n 10".Split()).Map((ListCommand c) => { Assert.Fail("Called map"); return 1; });
+        }
+
         [Verb("required")]
         class RequiredOptionCommand
         {

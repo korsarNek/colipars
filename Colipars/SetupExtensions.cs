@@ -58,10 +58,5 @@ namespace Colipars
         {
             return Attributes(instance, configure, typeof(TOption1), typeof(TOption2), typeof(TOption3), typeof(TOption4));
         }
-
-        public static AttributeParser Attributes<TOption1, TOption2, TOption3, TOption4, TOption5>(this Parsers.SetupHelper instance, Action<AttributeConfiguration> configure = null)
-        {
-            return Attributes(instance, configure, typeof(TOption1), typeof(TOption2), typeof(TOption3), typeof(TOption4), typeof(TOption5));
-        }
     }
 }
