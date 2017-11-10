@@ -21,17 +21,28 @@ class CreateCommand
 
     [NamedOption("double", Alias = "d", Description = "A floating point value.")]
     public double Number { get; set; }
-
-    public int Execute()
-    {
-        MyLibrary.Create(Name, Number);
-
-        return 0;
-    }
 }
 ```
 
-### lists and flags with custom converters
+### Positional arguments
+
+```
+setPosition 0.40 -100
+```
+
+```cs
+[Verb("setPosition")]
+class SetPositionCommand
+{
+    [PositionalOption(0, Description = "X coordinate")]
+    public float X { get; set; }
+
+    [PositionalOption(1, Description = "Y coordinate")]
+    public float Y { get; set; }
+}
+```
+
+### Lists and flags with custom converters
 Supports flags and lists with custom converters based on TypeConverters.
 
 ```
