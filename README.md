@@ -1,7 +1,8 @@
 # colipars
 COmmand LIne PARSer
 
-Small library using ,NET Standard 2.0 which is capable of parsing command line arguments.
+Another library for parsing command line arguments using C#.
+Depends on .Net Standard 2.0
 
 Has a default implementation to output to the console and get its configuration from attributes on a classes, but can be extended to output to something else or fetch its configuration from configuration files or other sources.
 
@@ -63,3 +64,33 @@ class ConvertCommand
 }
 ```
 Uses a special CollectionTypeConverter attribute to specify a converter for the elements of a collection instead of the whole collection.
+
+## How to use
+
+```cs
+var exitCode = Parsers.Setup.Attributes<Command>().Parse(args).Map(
+    (Command command) => command.Execute(),
+    (IEnumerable<IError> errors) => 1
+);
+```
+
+```cs
+var command = Parsers.Setup.Attributes<Command>().Parse(args).GetVerbObject<Command>();
+```
+
+Help can be shown by using the -h flag or from code, this includes the description of the attributes.
+```cs
+Parsers.Setup.Attributes<Command>().ShowHelp();
+```
+
+### Configuration
+
+If a default command is specified, the verb doesn't have to be specified at the beginning of the argument list.
+```cs
+Parsers.Setup.Attributes<ConvertCommand>((c) => c.UseAsDefault<ConvertCommand>());
+```
+
+Per default, the local use always CultureInfo.InvariantCulture, that can be changed in a similar way.
+```cs
+Parsers.Setup.Attributes<SetPositionCommand>((c) => c.CultureInfo = CultureInfo.CurrentCulture);
+```
