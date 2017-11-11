@@ -17,8 +17,6 @@ namespace Colipars
 
         public IVerb DefaultVerb { get; set; }
 
-        public int HelpExitCode { get; set; } = 0;
-
         public IServiceProvider Services { get; }
 
         public Configuration(IServiceProvider serviceProvider)

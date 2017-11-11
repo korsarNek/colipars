@@ -41,11 +41,11 @@ namespace Colipars.Attribute
         {
             if (Option is NamedCollectionOptionAttribute namedCollection)
             {
-                Type interfaceType = new[] { PropertyInfo.PropertyType }.Concat(PropertyInfo.PropertyType.GetInterfaces()).FirstOrDefault((x) => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+                Type interfaceType = new[] { PropertyInfo.PropertyType }.Concat(PropertyInfo.PropertyType.GetTypeInfo().GetInterfaces()).FirstOrDefault((x) => x.IsConstructedGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
                 if (interfaceType == null)
                     throw new InvalidOperationException($"The property \"{PropertyInfo.Name}\" on \"{PropertyInfo.DeclaringType}\" is marked as NamedCollectionOption but doesn't use a type that implements {typeof(ICollection<>)}.");
 
-                return interfaceType.GetGenericArguments()[0];
+                return interfaceType.GenericTypeArguments[0];
             }
 
             return PropertyInfo.PropertyType;

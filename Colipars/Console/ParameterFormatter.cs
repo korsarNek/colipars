@@ -10,6 +10,9 @@ namespace Colipars.Console
     {
         public string Format(string parameter)
         {
+#if NETFRAMEWORK4_5
+            return "/" + parameter;
+#else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return "/" + parameter;
 
@@ -17,6 +20,7 @@ namespace Colipars.Console
                 return "-" + parameter;
 
             return "--" + parameter;
+#endif
         }
 
         public string Parse(string parameter)

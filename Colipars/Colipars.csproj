@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
     <Version>0.9.0</Version>
     <Description>COmmand LIne PARSer</Description>
     <PackageLicenseUrl>https://github.com/korsarNek/colipars/blob/master/LICENSE</PackageLicenseUrl>
@@ -11,14 +11,21 @@
     <PackageTags>cli, console</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NeutralLanguage>en-001</NeutralLanguage>
+    <Authors>korsarNek</Authors>
+    <Company />
+    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <LangVersion>latest</LangVersion>
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD1_4</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+	<DefineConstants>NETFRAMEWORK4_5</DefineConstants>
+  </PropertyGroup>
 </Project>

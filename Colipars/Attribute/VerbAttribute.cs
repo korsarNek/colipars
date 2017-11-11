@@ -12,8 +12,6 @@ namespace Colipars.Attribute
 
         public string Description { get; set; }
 
-        public override object TypeId => base.TypeId;
-
         public VerbAttribute()
         {
 
@@ -48,16 +46,6 @@ namespace Colipars.Attribute
         public override int GetHashCode()
         {
             return Name?.GetHashCode() ?? 0;
-        }
-
-        public override bool IsDefaultAttribute()
-        {
-            return string.IsNullOrEmpty(Name);
-        }
-
-        public override bool Match(object obj)
-        {
-            return Equals(obj);
         }
     }
 }

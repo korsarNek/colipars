@@ -29,11 +29,13 @@ namespace Colipars.Attribute
             var verbConstructors = new Dictionary<IVerb, ConstructorInfo>();
             foreach (var type in _optionTypes)
             {
+                var typeInfo = type.GetTypeInfo();
+
                 //check if type is valid
-                if (type.IsGenericTypeDefinition)
+                if (typeInfo.IsGenericTypeDefinition)
                     throw new InvalidOperationException($"\"{type}\" is a generic type definition.");
 
-                var constructor = type.GetConstructors().FirstOrDefault((x) => x.IsPublic && x.GetParameters().Length == 0);
+                var constructor = typeInfo.GetConstructors().FirstOrDefault((x) => x.IsPublic && x.GetParameters().Length == 0);
                 if (constructor == null)
                     throw new InvalidOperationException($"\"{type}\" doesn't have a public parameterless constructor.");
 
@@ -43,7 +45,7 @@ namespace Colipars.Attribute
 
                 //get options
                 List<InstanceOption> instanceOptions = new List<InstanceOption>();
-                foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                foreach (var property in typeInfo.GetProperties(BindingFlags.Public | BindingFlags.Instance))
                 {
                     var option = Validate(type,
                         property.GetCustomAttribute<NamedOptionAttribute>() ??
@@ -76,7 +78,7 @@ namespace Colipars.Attribute
 
         public static IVerb GetVerbFromType(Type type)
         {
-            return type.GetCustomAttribute<VerbAttribute>() ?? new VerbAttribute(type.Name);
+            return type.GetTypeInfo().GetCustomAttribute<VerbAttribute>() ?? new VerbAttribute(type.Name);
         }
     }
 }

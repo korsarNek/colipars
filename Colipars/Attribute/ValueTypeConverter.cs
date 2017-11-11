@@ -28,7 +28,7 @@ namespace Colipars.Attribute
                 converter = (TypeConverter)Activator.CreateInstance(Type.GetType(collectionConverter.ConverterTypeName));
             else
                 converter = TypeDescriptor.CreateProperty(option.PropertyInfo.DeclaringType, option.PropertyInfo.Name, option.GetValueType()).Converter;
-
+            
             return converter.ConvertFromString(null, CultureInfo, text);
         }
     }
