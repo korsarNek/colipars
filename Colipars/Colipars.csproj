@@ -5,10 +5,10 @@
     <Version>0.9.0</Version>
     <Description>COmmand LIne PARSer</Description>
     <PackageLicenseUrl>https://github.com/korsarNek/colipars/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl />
+    <PackageProjectUrl>https://github.com/korsarNek/colipars</PackageProjectUrl>
     <RepositoryUrl>https://github.com/korsarNek/colipars</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>cli, console</PackageTags>
+    <PackageTags>cli, console, line, parser, arguments, command</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NeutralLanguage>en-001</NeutralLanguage>
     <Authors>korsarNek</Authors>
@@ -28,4 +28,8 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
 	<DefineConstants>NETFRAMEWORK4_5</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>
