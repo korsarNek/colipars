@@ -141,22 +141,22 @@ namespace Colipars.Attribute
 
         public bool TryMap<TOption>(Func<TOption, int> optionHandler, out int exitCode)
         {
-            return TryMap<TOption>(optionHandler, ErrorHandler.HandleErrors, out exitCode);
+            return TryMap<TOption>(optionHandler, ErrorHandlerFunc, out exitCode);
         }
 
         public bool TryMap<TOption1, TOption2>(Func<TOption1, int> option1Handler, Func<TOption2, int> option2Handler, out int exitCode)
         {
-            return TryMap<TOption1, TOption2>(option1Handler, option2Handler, ErrorHandler.HandleErrors, out exitCode);
+            return TryMap<TOption1, TOption2>(option1Handler, option2Handler, ErrorHandlerFunc, out exitCode);
         }
 
         public bool TryMap<TOption1, TOption2, TOption3>(Func<TOption1, int> option1Handler, Func<TOption2, int> option2Handler, Func<TOption3, int> option3Handler, out int exitCode)
         {
-            return TryMap<TOption1, TOption2, TOption3>(option1Handler, option2Handler, option3Handler, ErrorHandler.HandleErrors, out exitCode);
+            return TryMap<TOption1, TOption2, TOption3>(option1Handler, option2Handler, option3Handler, ErrorHandlerFunc, out exitCode);
         }
 
         public bool TryMap<TOption1, TOption2, TOption3, TOption4>(Func<TOption1, int> option1Handler, Func<TOption2, int> option2Handler, Func<TOption3, int> option3Handler, Func<TOption4, int> option4Handler, out int exitCode)
         {
-            return TryMap<TOption1, TOption2, TOption3, TOption4>(option1Handler, option2Handler, option3Handler, option4Handler, ErrorHandler.HandleErrors, out exitCode);
+            return TryMap<TOption1, TOption2, TOption3, TOption4>(option1Handler, option2Handler, option3Handler, option4Handler, ErrorHandlerFunc, out exitCode);
         }
 
         #endregion

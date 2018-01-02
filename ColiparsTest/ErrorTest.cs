@@ -46,6 +46,22 @@ namespace Colipars.Test
             Parsers.Setup.Attributes<ListCommand>().Parse("ListCommand -n 10".Split()).Map((ListCommand c) => { Assert.Fail("Called map even though there is an error"); return 1; });
         }
 
+        [TestMethod]
+        public void TryMapWithoutError()
+        {
+            Parsers.Setup.Attributes<RequiredOptionCommand>().Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => 12, out int exitCode);
+
+            Assert.AreEqual(exitCode, 12);
+        }
+
+        [TestMethod]
+        public void TryMapWithError()
+        {
+            Parsers.Setup.Attributes<RequiredOptionCommand>().Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => throw new Exception(), out int exitCode);
+
+            Assert.AreEqual(exitCode, 1);
+        }
+
         [Verb("required")]
         class RequiredOptionCommand
         {

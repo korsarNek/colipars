@@ -14,6 +14,7 @@ namespace Colipars
 
         /// <summary>
         /// The error handler assigned as default for handling errors, can be null.
+        /// Use the ErrorHandlerFunc if you want the HandleErrors function of it.
         /// </summary>
         protected IErrorHandler ErrorHandler { get; } = null;
 

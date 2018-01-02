@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Colipars
 {
-    public static class SetupExtensions
+    public static class AttributeSetupExtensions
     {
         /// <summary>
         /// Creates a Parser using Attributes on the given types.
