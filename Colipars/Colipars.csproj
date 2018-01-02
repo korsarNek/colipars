@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
-    <Version>0.9.0</Version>
+    <Version>0.9.1</Version>
     <Description>COmmand LIne PARSer</Description>
     <PackageLicenseUrl>https://github.com/korsarNek/colipars/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/korsarNek/colipars</PackageProjectUrl>
@@ -13,7 +13,7 @@
     <NeutralLanguage>en-001</NeutralLanguage>
     <Authors>korsarNek</Authors>
     <Company />
-    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed NullReferenceException on TryMap.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
