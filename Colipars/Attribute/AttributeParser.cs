@@ -196,7 +196,7 @@ namespace Colipars.Attribute
                 instanceOption.SetValue(instance, providedOption.Value);
             }
 
-            return new AttributeParseResult(verb, instance);
+            return new AttributeParseResult(verb, Configuration.Services.GetService<IErrorHandler>(), instance);
         }
     }
 }

@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Globalization;
 using Colipars.Attribute;
 using System.Collections.Generic;
+using Colipars.Internal;
+using Moq;
 
 namespace Colipars.Test
 {
@@ -51,15 +53,20 @@ namespace Colipars.Test
         {
             Parsers.Setup.Attributes<RequiredOptionCommand>().Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => 12, out int exitCode);
 
-            Assert.AreEqual(exitCode, 12);
+            Assert.AreEqual(12, exitCode);
         }
 
         [TestMethod]
-        public void TryMapWithError()
+        public void TryMapWithException()
         {
-            Parsers.Setup.Attributes<RequiredOptionCommand>().Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => throw new Exception(), out int exitCode);
+            Mock<IErrorHandler> mock = new Mock<IErrorHandler>();
+            mock.Setup(a => a.HandleErrors(It.IsAny<IError[]>())).Returns(1);
 
-            Assert.AreEqual(exitCode, 1);
+            Parsers.Setup.Attributes<RequiredOptionCommand>((c) => ((ServiceProvider)c.Services).Register<IErrorHandler>(mock.Object)).Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => throw new Exception(), out int exitCode);
+
+            //TODO: Check that the ErrorHandler got called.
+            Assert.AreEqual(1, exitCode);
+            mock.VerifyAll();
         }
 
         [Verb("required")]

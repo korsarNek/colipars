@@ -17,6 +17,7 @@ namespace Colipars
 
         public IVerb DefaultVerb { get; set; }
 
+        //TODO: make it easier to replace the services we use.
         public IServiceProvider Services { get; }
 
         public Configuration(IServiceProvider serviceProvider)
