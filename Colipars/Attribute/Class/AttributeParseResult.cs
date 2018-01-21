@@ -4,15 +4,41 @@ using System.Text;
 using System.Linq;
 using Colipars.Internal;
 
-namespace Colipars.Attribute
+namespace Colipars.Attribute.Class
 {
-    public class AttributeParseResult : ParseResult
+    public class AttributeParseResult : IParseResult
     {
         private object _handledOption;
 
-        public AttributeParseResult(IVerb verb, IErrorHandler errorHandler, object handledOption)
-            : base(verb, errorHandler, null, helpRequested: false)
+        public IVerb Verb { get; }
+        public IEnumerable<IError> Errors { get; }
+        public bool HelpRequested { get; } = false;
+
+        /// <summary>
+        /// The error handler assigned as default for handling errors, can be null.
+        /// Use the ErrorHandlerFunc if you want the HandleErrors function of it.
+        /// </summary>
+        protected IErrorHandler ErrorHandler { get; } = null;
+
+        /// <summary>
+        /// An error handler function, uses the ErrorHandler if one exists, otherwise it returns a dummy function.
+        /// </summary>
+        protected Func<IEnumerable<IError>, int> ErrorHandlerFunc
         {
+            get
+            {
+                if (ErrorHandler != null)
+                    return ErrorHandler.HandleErrors;
+
+                return (_) => 1;
+            }
+        }
+
+        public AttributeParseResult(IVerb verb, IErrorHandler errorHandler, object handledOption)
+        {
+            Verb = verb ?? throw new ArgumentNullException(nameof(verb));
+            Errors = new IError[0];
+            ErrorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
             _handledOption = handledOption ?? throw new ArgumentNullException(nameof(handledOption));
         }
 
@@ -21,18 +47,26 @@ namespace Colipars.Attribute
         /// </summary>
         /// <param name="verb"></param>
         /// <param name="errorHandler"></param>
-        public AttributeParseResult(IVerb verb)
-            : base(verb, null, null, helpRequested: true)
+        protected AttributeParseResult(IVerb verb)
         {
+            Verb = verb;
+            Errors = new IError[0];
+            HelpRequested = true;
         }
 
         public AttributeParseResult(IVerb verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
-            : base(verb, errorHandler, errors, helpRequested: false)
         {
-
+            Verb = verb;
+            ErrorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
+            Errors = errors ?? new IError[0];
         }
 
         #region Map
+
+        public int Map(Func<IVerb, int> verbHandler)
+        {
+            return Map(verbHandler, ErrorHandlerFunc);
+        }
 
         public int Map<TOption>(Func<TOption, int> optionHandler)
         {
@@ -57,6 +91,17 @@ namespace Colipars.Attribute
         #endregion
 
         #region Map with error handler
+
+        public virtual int Map(Func<IVerb, int> verbHandler, Func<IEnumerable<IError>, int> errorsHandler)
+        {
+            if (verbHandler == null) throw new ArgumentNullException(nameof(verbHandler));
+            if (errorsHandler == null) throw new ArgumentNullException(nameof(errorsHandler));
+
+            return MapInternal(() =>
+            {
+                return verbHandler(Verb);
+            }, errorsHandler);
+        }
 
         public int Map<TOption>(Func<TOption, int> optionHandler, Func<IEnumerable<IError>, int> errorsHandler)
         {
@@ -127,7 +172,7 @@ namespace Colipars.Attribute
         private int MapInternal(Func<int> handler, Func<IEnumerable<IError>, int> errorsHandler)
         {
             if (HelpRequested)
-                return EXIT_CODE_HELP;
+                return 0;
 
             if (Errors.Any())
                 return errorsHandler(Errors);
@@ -269,6 +314,11 @@ namespace Colipars.Attribute
                 throw new InvalidOperationException("Can't request the verb object, user requested showing the help.");
 
             return _handledOption;
+        }
+
+        public static AttributeParseResult CreateHelpRequested(IVerb verb = null)
+        {
+            return new AttributeParseResult(verb);
         }
     }
 }

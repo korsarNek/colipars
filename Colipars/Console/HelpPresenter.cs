@@ -9,15 +9,12 @@ namespace Colipars.Console
 {
     public class HelpPresenter : IHelpPresenter
     {
-        public Settings Settings { get; }
-
         public Configuration Configuration { get; }
 
         private IParameterFormatter _parameterFormatter;
 
-        public HelpPresenter(Settings settings, Configuration configuration, IParameterFormatter parameterFormatter)
+        public HelpPresenter(Configuration configuration, IParameterFormatter parameterFormatter)
         {
-            Settings = settings;
             Configuration = configuration;
             _parameterFormatter = parameterFormatter;
         }
@@ -27,8 +24,7 @@ namespace Colipars.Console
             WriteLine("usage: [verb] [parameters]");
             WriteLine($"{verb.Name} parameters:");
 
-            var options = Settings.GetOptions(verb);
-            foreach (var option in options)
+            foreach (var option in Configuration.GetOptions(verb))
             {
                 var line = _parameterFormatter.Format(option.Name);
                 if (!string.IsNullOrWhiteSpace(option.Alias))
@@ -45,7 +41,7 @@ namespace Colipars.Console
             WriteLine("usage: [verb] [parameters]");
             WriteLine("verbs:");
 
-            foreach (var verb in Settings.Verbs)
+            foreach (var verb in Configuration.Verbs)
             {
                 WriteLine("\t" + verb.Name + "\t" + verb.Description);//TODO: output description
             }

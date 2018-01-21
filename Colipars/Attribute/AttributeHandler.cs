@@ -1,0 +1,265 @@
+﻿using Colipars.Internal;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Colipars.Attribute
+{
+    //TODO: use this as base for the attributeParsers
+    class AttributeHandler
+    {
+        private Func<IOption, string, object> _valueConverter;
+        private Func<IOption, Type> _memberTypeFromOption;
+        private IParameterFormatter _parameterFormatter;
+        private Configuration _configuration;
+
+        public AttributeHandler(Configuration configuration, IParameterFormatter parameterFormatter, Func<IOption, string, object> valueConverter, Func<IOption, Type> memberTypeFromOption)
+        {
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            //TODO: instead of func, provide an interface for the conversion.
+            _valueConverter = valueConverter ?? throw new ArgumentNullException(nameof(valueConverter));
+            _memberTypeFromOption = memberTypeFromOption ?? throw new ArgumentNullException(nameof(memberTypeFromOption));
+            _parameterFormatter = parameterFormatter ?? throw new ArgumentNullException(nameof(parameterFormatter));
+        }
+
+        public bool TryProcessArguments(IVerb verb, IEnumerable<IOption> options, IEnumerable<string> arguments, out IEnumerable<OptionAndValue> optionValues, out IEnumerable<IError> errors)
+        {
+            if (verb == null) throw new ArgumentNullException(nameof(verb));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (arguments == null) throw new ArgumentNullException(nameof(arguments));
+
+            var positionalOptions = options.OfType<PositionalOptionAttribute>().ToArray();
+            var flagOptions = options.OfType<FlagOptionAttribute>().ToArray();
+            var namedCollectionOptions = options.OfType<NamedCollectionOptionAttribute>().ToArray();
+            var namedOptions = options.OfType<NamedOptionAttribute>().ToArray();
+
+            int positionalArgumentCount = 0;
+            var argsArray = arguments.ToArray();
+            List<OptionAndValue> providedOptions = new List<OptionAndValue>();
+            for (int i = 0; i < argsArray.Length; i++)
+            {
+                var argument = argsArray[i];
+                var parameterName = _parameterFormatter.Parse(argument);
+
+                if (HandleNamedOption(argsArray, ref i, parameterName, providedOptions, namedOptions)) { continue; }
+                else if (HandleFlagOption(argument, parameterName, providedOptions, flagOptions)) { continue; }
+                else if (HandlePositionOption(argument, parameterName, providedOptions, positionalOptions, ref positionalArgumentCount)) { continue; }
+                else if (HandleNamedCollectionOption(argsArray, ref i, parameterName, providedOptions, namedCollectionOptions, flagOptions)) { continue; }
+                {
+                    optionValues = new OptionAndValue[0];
+                    errors = new IError[] { new OptionForArgumentNotFoundError(verb, argument, positionalArgumentCount) };
+                    return false;
+                }
+            }
+
+            //check required parameters.
+            foreach (var requiredOption in options.Where((o) => o.Required))
+            {
+                var providedOption = providedOptions.FirstOrDefault((o) => o.Option == requiredOption);
+                if (providedOption == null)
+                {
+                    optionValues = new OptionAndValue[0];
+                    errors = new IError[] { new RequiredParameterMissingError(verb, requiredOption.Name) };
+                    return false;
+                }
+                else if (providedOption.Option is NamedCollectionOptionAttribute collectionOption && ((IList)providedOption.Value).Count < collectionOption.MinimumCount)
+                {
+                    optionValues = new OptionAndValue[0];
+                    errors = new IError[] { new NotEnoughElementsError(verb, collectionOption.Name, collectionOption.MinimumCount) };
+                    return false;
+                }
+            }
+
+            optionValues = providedOptions;
+            errors = new IError[0];
+            return true;
+        }
+
+        public bool TryParseSelectedVerb(IEnumerable<IVerb> verbs, ref IEnumerable<string> args, out IError error, out IVerb selectedVerb, out bool requestedHelp)
+        {
+            requestedHelp = false;
+            error = null;
+
+            var firstParam = args.FirstOrDefault();
+            if (firstParam == null)
+            {
+                selectedVerb = null;
+                error = new VerbIsMissingError();
+                return false;
+            }
+
+            if (_configuration.HelpArguments.Contains(firstParam))
+            {
+                selectedVerb = null;
+                requestedHelp = true;
+                return false;
+            }
+
+            selectedVerb = verbs.FirstOrDefault((x) => x.Name == firstParam);
+            if (selectedVerb == null)
+            {
+                if (_configuration.DefaultVerb != null)
+                    selectedVerb = _configuration.DefaultVerb;
+                else
+                {
+                    error = new UnknownVerbError(firstParam);
+                    return false;
+                }
+            }
+            else
+            {
+                args = args.Skip(1);
+            }
+
+            if (args.Any((x) => _configuration.HelpArguments.Contains(x)))
+            {
+                requestedHelp = true;
+                return false;
+            }
+            
+            return true;
+        }
+
+        private bool HandleFlagOption(string argument, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<FlagOptionAttribute> flagOptions)
+        {
+            var flagOption = GetFlagOption(parameterName, flagOptions);
+            if (flagOption != null)
+            {
+                //GetValueType handelt nur NamedCollections, also wofür brauche ich das hier?
+                if (_memberTypeFromOption(flagOption) != typeof(bool))
+                {
+                    //Use parameterName not the unparsed argument.
+                    providedOptions.Add(new OptionAndValue(flagOption, _valueConverter(flagOption, parameterName)));
+                }
+                else
+                {
+                    providedOptions.Add(new OptionAndValue(flagOption, true));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool HandlePositionOption(string argument, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<PositionalOptionAttribute> positionalOptions, ref int positionalArgumentCounter)
+        {
+            var positionalOption = positionalOptions.ElementAtOrDefault(positionalArgumentCounter);
+            if (positionalOption != null)
+            {
+                positionalArgumentCounter++;
+                providedOptions.Add(new OptionAndValue(positionalOption, _valueConverter(positionalOption, argument)));
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool HandleNamedOption(string[] arguments, ref int argumentCounter, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<NamedOptionAttribute> namedOptions)
+        {
+            var namedOption = GetOption(parameterName, namedOptions);
+            if (namedOption != null)
+            {
+                argumentCounter++;
+                providedOptions.Add(new OptionAndValue(namedOption, _valueConverter(namedOption, arguments[argumentCounter])));
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool HandleNamedCollectionOption(string[] arguments, ref int argumentCounter, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<NamedCollectionOptionAttribute> namedCollectionOptions, IEnumerable<FlagOptionAttribute> flagOptions)
+        {
+            var namedCollectionOption = GetOption(parameterName, namedCollectionOptions);
+            if (namedCollectionOption != null)
+            {
+                List<object> list = new List<object>();
+                while (argumentCounter + 1 < arguments.Length)
+                {
+                    argumentCounter++;
+                    parameterName = _parameterFormatter.Parse(arguments[argumentCounter]);
+
+                    if (GetOption(parameterName, namedCollectionOptions) != null || GetFlagOption(parameterName, flagOptions) != null)
+                    {
+                        argumentCounter--;
+                        break;
+                    }
+
+                    list.Add(_valueConverter(namedCollectionOption, arguments[argumentCounter]));
+                }
+
+                providedOptions.Add(new OptionAndValue(namedCollectionOption, list));
+                return true;
+            }
+
+            return false;
+        }
+
+        private TOption GetOption<TOption>(string parameterName, IEnumerable<TOption> options) where TOption : IOption
+        {
+            return options.FirstOrDefault((o) => o.Name == parameterName || o.Alias == parameterName);
+        }
+
+        private FlagOptionAttribute GetFlagOption(string parameterName, IEnumerable<FlagOptionAttribute> flagOptions)
+        {
+            return flagOptions.FirstOrDefault((o) => o.Name == parameterName || parameterName.StartsWith(o.ShortHand));
+        }
+
+        public static bool IsCollectionAttribute(IOption option)
+        {
+            return option is NamedCollectionOptionAttribute;
+        }
+
+        public static ConstructorInfo GetConstructor(TypeInfo typeInfo)
+        {
+            //check if type is valid
+            if (typeInfo.IsGenericTypeDefinition)
+                throw new InvalidOperationException($"\"{typeInfo}\" is a generic type definition.");
+
+            var constructor = typeInfo.GetConstructors().FirstOrDefault((x) => x.IsPublic && x.GetParameters().Length == 0);
+            if (constructor == null)
+                throw new InvalidOperationException($"\"{typeInfo}\" doesn't have a public parameterless constructor.");
+
+            return constructor;
+        }
+
+        public static IOption GetOption(Configuration configuration, string parentIdentifier, ICustomAttributeProvider attributeProvider)
+        {
+            return Validate(configuration, parentIdentifier,
+                attributeProvider.GetCustomAttribute<NamedOptionAttribute>() ??
+                attributeProvider.GetCustomAttribute<PositionalOptionAttribute>() ??
+                attributeProvider.GetCustomAttribute<NamedCollectionOptionAttribute>() ??
+                (IOption)attributeProvider.GetCustomAttribute<FlagOptionAttribute>()
+            );
+        }
+
+        public static Type GetValueType(IOption option, Type type)
+        {
+            if (IsCollectionAttribute(option))
+            {
+                var collectionType = type.GetInterfaces().Concat(new[] { type }).FirstOrDefault((x) => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+                if (collectionType != null)
+                    return collectionType.GetGenericArguments()[0];
+            }
+
+            return type;
+        }
+
+        private static IOption Validate(Configuration configuration, string parentIdentifier, IOption option)
+        {
+            if (option == null)
+                return null;
+
+            if (configuration.HelpArguments.Contains(option.Name))
+                throw new AmbiguousMatchException($"The help argument \"{option.Name}\" is ambigous with option of the same name in \"{parentIdentifier}\"");
+
+            return option;
+        }
+    }
+}

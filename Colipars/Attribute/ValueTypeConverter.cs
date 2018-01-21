@@ -1,35 +1,43 @@
-﻿using System;
+﻿using Colipars.Internal;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Text;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Colipars.Attribute
 {
-    /// <summary>
-    /// Converts values using TypeConverters.
-    /// </summary>
-    class ValueTypeConverter : IValueConverter
+    public class ValueTypeConverter : IValueConverter
     {
-        public CultureInfo CultureInfo { get; }
+        private CultureInfo _cultureInfo;
 
         public ValueTypeConverter(CultureInfo cultureInfo)
         {
-            CultureInfo = cultureInfo;
+            _cultureInfo = cultureInfo ?? throw new ArgumentNullException(nameof(cultureInfo));
         }
 
-        public object ConvertFromString(InstanceOption option, string text)
+        public object ConvertFromString(IOption option, ICustomAttributeProvider attributes, Type targetType, string text)
         {
             TypeConverter converter;
-
-            var collectionConverter = option.PropertyInfo.GetCustomAttribute<CollectionTypeConverterAttribute>();
+            var collectionConverter = attributes.GetCustomAttribute<CollectionTypeConverterAttribute>();
             if (collectionConverter != null)
                 converter = (TypeConverter)Activator.CreateInstance(Type.GetType(collectionConverter.ConverterTypeName));
             else
-                converter = TypeDescriptor.CreateProperty(option.PropertyInfo.DeclaringType, option.PropertyInfo.Name, option.GetValueType()).Converter;
-            
-            return converter.ConvertFromString(null, CultureInfo, text);
+            {
+                var typeConverterAttribute = attributes.GetCustomAttribute<TypeConverterAttribute>();
+                if (typeConverterAttribute != null)
+                    converter = (TypeConverter)Activator.CreateInstance(Type.GetType(typeConverterAttribute.ConverterTypeName));
+                else
+                    converter = TypeDescriptor.GetConverter(targetType);
+            }
+
+            if (converter == null)
+                throw new InvalidOperationException($"Can not get a TypeConverter for \"{targetType}\".");
+
+            return converter.ConvertFromString(null, _cultureInfo, text);
         }
     }
 }

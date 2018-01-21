@@ -3,7 +3,7 @@ using System;
 
 namespace Colipars.Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class NamedOptionAttribute : System.Attribute, IOption
     {
         public string Name { get; }

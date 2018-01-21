@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Colipars
 {
-    public class Configuration
+    public abstract class Configuration
     {
         /// <summary>
         /// Possible arguments to any verb that trigger the help.
@@ -20,9 +20,13 @@ namespace Colipars
         //TODO: make it easier to replace the services we use.
         public IServiceProvider Services { get; }
 
+        public abstract IEnumerable<IVerb> Verbs { get; }
+
         public Configuration(IServiceProvider serviceProvider)
         {
             Services = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
+
+        public abstract IEnumerable<IOption> GetOptions(IVerb verb);
     }
 }

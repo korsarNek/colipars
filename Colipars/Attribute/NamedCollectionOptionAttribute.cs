@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Colipars.Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class NamedCollectionOptionAttribute : System.Attribute, IOption
     {
         public string Name { get; }

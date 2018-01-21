@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Colipars.Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class CollectionTypeConverterAttribute : System.Attribute
     {
         public CollectionTypeConverterAttribute(Type type)

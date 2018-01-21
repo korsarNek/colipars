@@ -18,7 +18,7 @@ namespace Colipars.Attribute
                     _defaultInstance = new ServiceProvider();
 
                     _defaultInstance.Register<IParameterFormatter>(() => new Console.ParameterFormatter());
-                    _defaultInstance.Register<IHelpPresenter>(() => new Console.HelpPresenter(_defaultInstance.GetService<Settings>(), _defaultInstance.GetService<Configuration>(), _defaultInstance.GetService<IParameterFormatter>()));
+                    _defaultInstance.Register<IHelpPresenter>(() => new Console.HelpPresenter(_defaultInstance.GetService<Configuration>(), _defaultInstance.GetService<IParameterFormatter>()));
                     _defaultInstance.Register<IValueConverter>(() => new ValueTypeConverter(_defaultInstance.GetService<Configuration>().CultureInfo));
                     _defaultInstance.Register<IErrorPresenter>(() => new Console.ErrorPresenter());
                     _defaultInstance.Register<IErrorHandler>(() => new DefaultErrorHandler(_defaultInstance.GetService<IErrorPresenter>(), _defaultInstance.GetService<IHelpPresenter>()));

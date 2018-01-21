@@ -12,11 +12,6 @@ namespace Colipars.Attribute
 
         public string Description { get; set; }
 
-        public VerbAttribute()
-        {
-
-        }
-
         public VerbAttribute(string name)
         {
             this.Name = name;

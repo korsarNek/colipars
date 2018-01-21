@@ -68,7 +68,7 @@ Uses a special CollectionTypeConverter attribute to specify a converter for the 
 ## How to use
 
 ```cs
-var exitCode = Parsers.Setup.Attributes<Command>().Parse(args).Map(
+var exitCode = Parsers.Setup.ClassAttributes<Command>().Parse(args).Map(
     (Command command) => command.Execute(),
     (IEnumerable<IError> errors) => 1
 );
@@ -87,10 +87,29 @@ Parsers.Setup.Attributes<Command>().ShowHelp();
 
 If a default command is specified, the verb doesn't have to be specified at the beginning of the argument list.
 ```cs
-Parsers.Setup.Attributes<ConvertCommand>((c) => c.UseAsDefault<ConvertCommand>());
+Parsers.Setup.ClassAttributes<ConvertCommand>((c) => c.UseAsDefault<ConvertCommand>());
 ```
 
 Per default, the local use always CultureInfo.InvariantCulture, that can be changed in a similar way.
 ```cs
-Parsers.Setup.Attributes<SetPositionCommand>((c) => c.CultureInfo = CultureInfo.CurrentCulture);
+Parsers.Setup.ClassAttributes<SetPositionCommand>((c) => c.CultureInfo = CultureInfo.CurrentCulture);
+```
+
+### Method verbs
+
+It's possible to use the Verb attributes not only on classes but also on methods.
+```cs
+class MyContainer
+{
+    [Verb("handleNumbers")]
+    public int HandleNumbers([NamedCollectionOption("numbers")] IEnumerable<int> numbers)
+    {
+        ...
+        return 0;
+    }
+}
+```
+
+```cs
+Parsers.Setup.MethodAttributes<MyContainer>().Parse(args).Execute();
 ```
