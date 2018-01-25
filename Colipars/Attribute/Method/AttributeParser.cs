@@ -36,14 +36,14 @@ namespace Colipars.Attribute.Method
         {
             _helpPresenter.Present(verb);
 
-            return AttributeParseResult.CreateHelpRequested(verb);
+            return AttributeParseResult.CreateHelpRequest(verb);
         }
 
         public AttributeParseResult ShowHelp()
         {
             _helpPresenter.Present();
 
-            return AttributeParseResult.CreateHelpRequested();
+            return AttributeParseResult.CreateHelpRequest();
         }
 
         #endregion

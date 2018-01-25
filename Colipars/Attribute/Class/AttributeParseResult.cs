@@ -63,11 +63,22 @@ namespace Colipars.Attribute.Class
 
         #region Map
 
+        /// <summary>
+        /// Maps the verb object to an exit code.
+        /// </summary>
+        /// <param name="verbHandler"></param>
+        /// <returns></returns>
         public int Map(Func<IVerb, int> verbHandler)
         {
             return Map(verbHandler, ErrorHandlerFunc);
         }
 
+        /// <summary>
+        /// Maps the options object to an exit code.
+        /// </summary>
+        /// <typeparam name="TOption"></typeparam>
+        /// <param name="optionHandler"></param>
+        /// <returns></returns>
         public int Map<TOption>(Func<TOption, int> optionHandler)
         {
             return Map(optionHandler, ErrorHandlerFunc);
@@ -185,6 +196,13 @@ namespace Colipars.Attribute.Class
 
         #region TryMap
 
+        /// <summary>
+        /// Maps the options object to an exit code. If an exception happens in the <paramref name="optionHandler"/>, an error handler takes care of it and this function returns false.
+        /// </summary>
+        /// <typeparam name="TOption"></typeparam>
+        /// <param name="optionHandler"></param>
+        /// <param name="exitCode"></param>
+        /// <returns>True if no exception was thrown, false otherwise.</returns>
         public bool TryMap<TOption>(Func<TOption, int> optionHandler, out int exitCode)
         {
             return TryMap<TOption>(optionHandler, ErrorHandlerFunc, out exitCode);
@@ -210,13 +228,13 @@ namespace Colipars.Attribute.Class
         #region TrypMap with error handler
 
         /// <summary>
-        /// Returns false if an exception was thrown while calling mapping the result, otherwise true.
+        /// Maps the options object to an exit code. If an exception happens in the <paramref name="optionHandler"/>, the given <paramref name="errorsHandler"/> gets called and this function returns false.
         /// </summary>
         /// <typeparam name="TOption"></typeparam>
         /// <param name="optionHandler"></param>
-        /// <param name="exceptionExitCode"></param>
+        /// <param name="errorsHandler">Gets called if any error happens.</param>
         /// <param name="exitCode"></param>
-        /// <returns></returns>
+        /// <returns>True if no exception was thrown, false otherwise.</returns>
         public bool TryMap<TOption>(Func<TOption, int> optionHandler, Func<IEnumerable<IError>, int> errorsHandler, out int exitCode)
         {
             if (optionHandler == null) throw new ArgumentNullException(nameof(optionHandler));
@@ -316,7 +334,7 @@ namespace Colipars.Attribute.Class
             return _handledOption;
         }
 
-        public static AttributeParseResult CreateHelpRequested(IVerb verb = null)
+        public static AttributeParseResult CreateHelpRequest(IVerb verb = null)
         {
             return new AttributeParseResult(verb);
         }

@@ -55,11 +55,19 @@ namespace Colipars.Attribute.Method
         /// <returns></returns>
         public int Execute()
         {
+            return Execute(_errorHandler.HandleErrors);
+        }
+
+        public int Execute(Func<IEnumerable<IError>, int> errorHandler)
+        {
+            if (errorHandler == null)
+                throw new ArgumentNullException(nameof(errorHandler));
+
             if (HelpRequested)
                 return 0;
 
             if (Errors.Any())
-                return _errorHandler.HandleErrors(Errors);
+                return errorHandler(Errors);
 
             var result = _method.Invoke(_instance, _parameters);
             if (result is int exitCode)
@@ -69,12 +77,20 @@ namespace Colipars.Attribute.Method
         }
 
         /// <summary>
-        /// 
+        /// Execute the method identified by the verb if there are no errors and no help was requested. If there is an exception, an error handler takes care of it.
         /// </summary>
         /// <param name="exitCode"></param>
         /// <returns>Returns true if no exception was thrown, otherwise false.</returns>
         public bool TryExecute(out int exitCode)
         {
+            return TryExecute(_errorHandler.HandleErrors, out exitCode);
+        }
+
+        public bool TryExecute(Func<IEnumerable<IError>, int> errorHandler, out int exitCode)
+        {
+            if (errorHandler == null)
+                throw new ArgumentNullException(nameof(errorHandler));
+
             try
             {
                 exitCode = Execute();
@@ -82,12 +98,12 @@ namespace Colipars.Attribute.Method
             }
             catch (Exception exc)
             {
-                exitCode = _errorHandler.HandleErrors(new [] { new UnexpectedExceptionError(exc) });
+                exitCode = errorHandler(new[] { new UnexpectedExceptionError(exc) });
                 return false;
             }
         }
 
-        public static AttributeParseResult CreateHelpRequested(IVerb verb = null)
+        public static AttributeParseResult CreateHelpRequest(IVerb verb = null)
         {
             return new AttributeParseResult(verb);
         }
