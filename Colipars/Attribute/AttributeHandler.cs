@@ -48,7 +48,7 @@ namespace Colipars.Attribute
                 if (HandleNamedOption(argsArray, ref i, parameterName, providedOptions, namedOptions)) { continue; }
                 else if (HandleFlagOption(argument, parameterName, providedOptions, flagOptions)) { continue; }
                 else if (HandlePositionOption(argument, parameterName, providedOptions, positionalOptions, ref positionalArgumentCount)) { continue; }
-                else if (HandleNamedCollectionOption(argsArray, ref i, parameterName, providedOptions, namedCollectionOptions, flagOptions)) { continue; }
+                else if (HandleNamedCollectionOption(argsArray, ref i, parameterName, providedOptions, namedCollectionOptions, flagOptions, namedOptions)) { continue; }
                 {
                     optionValues = new OptionAndValue[0];
                     errors = new IError[] { new OptionForArgumentNotFoundError(verb, argument, positionalArgumentCount) };
@@ -83,6 +83,9 @@ namespace Colipars.Attribute
         {
             requestedHelp = false;
             error = null;
+
+            //TODO: add test for this case with explanation why.
+            args = args.Where((x) => !String.IsNullOrEmpty(x));
 
             var firstParam = args.FirstOrDefault();
             if (firstParam == null)
@@ -174,7 +177,7 @@ namespace Colipars.Attribute
             return false;
         }
 
-        private bool HandleNamedCollectionOption(string[] arguments, ref int argumentCounter, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<NamedCollectionOptionAttribute> namedCollectionOptions, IEnumerable<FlagOptionAttribute> flagOptions)
+        private bool HandleNamedCollectionOption(string[] arguments, ref int argumentCounter, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<NamedCollectionOptionAttribute> namedCollectionOptions, IEnumerable<FlagOptionAttribute> flagOptions, IEnumerable<NamedOptionAttribute> namedOptions)
         {
             var namedCollectionOption = GetOption(parameterName, namedCollectionOptions);
             if (namedCollectionOption != null)
@@ -185,7 +188,7 @@ namespace Colipars.Attribute
                     argumentCounter++;
                     parameterName = _parameterFormatter.Parse(arguments[argumentCounter]);
 
-                    if (GetOption(parameterName, namedCollectionOptions) != null || GetFlagOption(parameterName, flagOptions) != null)
+                    if (GetOption(parameterName, namedCollectionOptions) != null || GetOption(parameterName, namedOptions) != null || GetFlagOption(parameterName, flagOptions) != null)
                     {
                         argumentCounter--;
                         break;

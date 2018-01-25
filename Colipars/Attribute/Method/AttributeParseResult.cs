@@ -33,7 +33,8 @@ namespace Colipars.Attribute.Method
 
         public AttributeParseResult(IVerb verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
         {
-            Verb = verb ?? throw new ArgumentNullException(nameof(verb));
+            //Verb not necessarily given in case of an error with the verb.
+            Verb = verb;
             _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
             Errors = errors ?? new IError[0];
         }
@@ -48,6 +49,10 @@ namespace Colipars.Attribute.Method
             _parameters = parameters;
         }
 
+        /// <summary>
+        /// Execute the method identified by the verb if there are no errors and no help was requested.
+        /// </summary>
+        /// <returns></returns>
         public int Execute()
         {
             if (HelpRequested)
@@ -63,6 +68,11 @@ namespace Colipars.Attribute.Method
             return 0;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="exitCode"></param>
+        /// <returns>Returns true if no exception was thrown, otherwise false.</returns>
         public bool TryExecute(out int exitCode)
         {
             try

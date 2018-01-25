@@ -13,9 +13,7 @@
     <NeutralLanguage>en-001</NeutralLanguage>
     <Authors>korsarNek</Authors>
     <Company />
-    <PackageReleaseNotes>Big refactoring.
-Parsers.Setup.Attributes is now called Parsers.Setup.ClassAttributes.
-This version now allows verbs on methods, not only on classes, they can be used with Parsers.Setup.MethodAttributes.</PackageReleaseNotes>
+    <PackageReleaseNotes>Allows now attributes on methods and parameters instead of classes and properties.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -33,9 +31,5 @@ This version now allows verbs on methods, not only on classes, they can be used 
 
   <ItemGroup>
     <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
 </Project>

@@ -19,7 +19,7 @@ namespace Colipars.Test
         {
             var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>().Parse(new string[0]).Errors;
 
-            Assert.AreEqual(errors.Count(), 1);
+            Assert.AreEqual(1, errors.Count());
             Assert.IsInstanceOfType(errors.First(), typeof(VerbIsMissingError));
         }
 
@@ -28,7 +28,7 @@ namespace Colipars.Test
         {
             var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => c.UseAsDefault<RequiredOptionCommand>()).Parse("BoolValue true".Split()).Errors;
 
-            Assert.AreEqual(errors.Count(), 1);
+            Assert.AreEqual(1, errors.Count());
             Assert.IsInstanceOfType(errors.First(), typeof(RequiredParameterMissingError));
         }
 

@@ -39,19 +39,19 @@ namespace Colipars.Attribute.Method
             {
                 var typeInfo = type.GetTypeInfo();
 
-                foreach (var methodAttributePair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance).Select((x) => (method: x, attribute: GetVerbFromMethod(x))).Where((x) => x.attribute != null))
+                foreach (var methodVerbPair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance).Select((x) => new KeyValuePair<MethodInfo, IVerb>(x, GetVerbFromMethod(x))).Where((x) => x.Value != null))
                 {
                     var parameterOptions = new List<ParameterValueOption>();
-                    foreach (var parameter in methodAttributePair.method.GetParameters())
+                    foreach (var parameter in methodVerbPair.Key.GetParameters())
                     {
-                        var option = AttributeHandler.GetOption(this, methodAttributePair.method.ToString(), parameter);
+                        var option = AttributeHandler.GetOption(this, methodVerbPair.Key.ToString(), parameter);
                         if (option == null && !parameter.HasDefaultValue)
-                            throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{methodAttributePair.method.Name}\" has no option attribute and no default value.");
+                            throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{methodVerbPair.Key.Name}\" has no option attribute and no default value.");
 
                         parameterOptions.Add(new ParameterValueOption(parameter, option));
                     }
 
-                    _verbData.Add(methodAttributePair.attribute, new VerbData(methodAttributePair.attribute, methodAttributePair.method, () => AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]), parameterOptions));
+                    _verbData.Add(methodVerbPair.Value, new VerbData(methodVerbPair.Value, methodVerbPair.Key, () => AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]), parameterOptions));
                 }
             }
         }
