@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -69,8 +69,8 @@ namespace Colipars.Attribute.Class
 
         internal class VerbData
         {
-            Func<object> _instanceFactory;
-            private object _instance = null;
+            readonly Func<object> _instanceFactory;
+            private object? _instance = null;
 
             public IVerb Verb { get; set; }
             public object Instance

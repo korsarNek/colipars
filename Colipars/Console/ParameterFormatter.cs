@@ -1,4 +1,4 @@
-﻿using Colipars.Internal;
+using Colipars.Internal;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;

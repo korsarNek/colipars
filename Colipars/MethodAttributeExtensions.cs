@@ -1,4 +1,4 @@
-﻿using Colipars.Attribute;
+using Colipars.Attribute;
 using Colipars.Attribute.Method;
 using Colipars.Internal;
 using System;

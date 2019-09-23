@@ -14,19 +14,26 @@
     <Authors>korsarNek</Authors>
     <Company />
     <PackageReleaseNotes>Allows now attributes on methods and parameters instead of classes and properties.</PackageReleaseNotes>
+    <NullableReferenceTypes>true</NullableReferenceTypes>
+    <Nullable>enable</Nullable>
+    <NullableContextOptions>enable</NullableContextOptions>
+    <LangVersion>8.0</LangVersion>
+    <WarningsAsErrors>NU1605,8632,8618,8625,8603,8601</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>latest</LangVersion>
     <DefineConstants>TRACE;RELEASE;NETSTANDARD1_4</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
 	<DefineConstants>NETFRAMEWORK4_5</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+    
   </PropertyGroup>
 
   <ItemGroup>

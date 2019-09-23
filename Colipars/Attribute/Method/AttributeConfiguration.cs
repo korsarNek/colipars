@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -140,7 +140,7 @@ namespace Colipars.Attribute.Method
                         else
                             _value = Activator.CreateInstance(typeof(List<>).MakeGenericType(AttributeHandler.GetValueType(Option, ParameterInfo.ParameterType)));
                     }
-                        
+
                     var list = (IList)_value;
                     foreach (var element in (IList)value)
                         list.Add(element);

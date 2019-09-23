@@ -1,4 +1,4 @@
-﻿using Colipars;
+using Colipars;
 using Colipars.Attribute;
 using Colipars.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

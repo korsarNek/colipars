@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
@@ -12,8 +12,8 @@ namespace Colipars.Attribute.Class
 {
     public class AttributeParser : IParser<AttributeParseResult>
     {
-        private IHelpPresenter _helpPresenter;
-        private AttributeHandler _attributeHandler;
+        private readonly IHelpPresenter _helpPresenter;
+        private readonly AttributeHandler _attributeHandler;
 
         public AttributeParser(AttributeConfiguration configuration, IParameterFormatter parameterFormatter, IValueConverter valueConverter, IHelpPresenter helpPresenter)
         {
