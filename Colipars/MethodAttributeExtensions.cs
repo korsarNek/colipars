@@ -17,7 +17,7 @@ namespace Colipars
         {
             var serviceProvider = ServiceProvider.Default;
 
-            var configuration = new AttributeConfiguration(serviceProvider, containerTypes);
+            var configuration = new AttributeConfiguration(serviceProvider, containerTypes, instance);
             serviceProvider.Register<Configuration>(configuration);
             serviceProvider.Register<AttributeConfiguration>(configuration);
 

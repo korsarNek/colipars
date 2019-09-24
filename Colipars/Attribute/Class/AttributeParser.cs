@@ -84,7 +84,7 @@ namespace Colipars.Attribute.Class
                 optionProperty.SetValue(verbData.Instance, providedOption.Value);
             }
 
-            return AttributeParseResult.CreateSuccessResult(safeVerb, verbData.Instance);
+            return AttributeParseResult.CreateSuccessResult(safeVerb, Configuration.Services.GetService<IErrorHandler>(), verbData.Instance);
         }
 
         IParseResult IParser.Parse(IEnumerable<string> args)

@@ -13,14 +13,14 @@ namespace Colipars.Attribute.Method
     {
         private readonly Dictionary<IVerb, VerbData> _verbData = new Dictionary<IVerb, VerbData>();
 
-        internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes)
+        internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes, object? instance = null)
             : base(serviceProvider)
         {
             foreach (var type in optionTypes)
             {
                 var typeInfo = type.GetTypeInfo();
 
-                foreach (var methodVerbPair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance).Select((x) => new KeyValuePair<MethodInfo, IVerb?>(x, GetVerbFromMethod(x))).Where((x) => x.Value != null))
+                foreach (var methodVerbPair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).Select((x) => new KeyValuePair<MethodInfo, IVerb?>(x, GetVerbFromMethod(x))).Where((x) => x.Value != null))
                 {
                     var parameterOptions = new List<IParameterValue>();
                     foreach (var parameter in methodVerbPair.Key.GetParameters())
@@ -35,7 +35,12 @@ namespace Colipars.Attribute.Method
                             parameterOptions.Add(new ParameterValueOption(parameter, option, methodVerbPair.Key));
                     }
 
-                    _verbData.Add(methodVerbPair.Value, new VerbData(methodVerbPair.Value, methodVerbPair.Key, () => AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]), parameterOptions));
+                    _verbData.Add(methodVerbPair.Value, new VerbData(methodVerbPair.Value, methodVerbPair.Key, () => {
+                        if (instance != null)
+                            return instance;
+
+                        return AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]);
+                    }, parameterOptions));
                 }
             }
         }
@@ -79,13 +84,16 @@ namespace Colipars.Attribute.Method
 
             public IVerb Verb { get; set; }
             public MethodInfo Method { get; set; }
-            public object Instance
+            public object? Instance
             {
                 get
                 {
                     if (_instance != null)
                         return _instance;
 
+                    if (Method.IsStatic)
+                        return null;
+                    
                     _instance = _instanceFactory();
                     return _instance;
                 }

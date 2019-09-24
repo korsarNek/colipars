@@ -44,8 +44,32 @@ namespace Colipars.Test
             Assert.AreEqual(0, Parsers.Setup.MethodAttributes<Container>().Parse("PositionalAfterNamedCollection outputfile.png --files testfile1.png testfile2.png".Split()).Execute());
         }
 
+        [TestMethod]
+        public void ExecuteAVerbWithDefaultParameters()
+        {
+            Assert.AreEqual(0, Parsers.Setup.MethodAttributes<Container>().Parse("DefaultParameter --output outputfile.png".Split()).Execute());
+        }
+
+        [TestMethod]
+        public void StaticMethodWithVerb()
+        {
+            Assert.AreEqual(2, Parsers.Setup.MethodAttributes<Container>().Parse("StaticMethod outputfile.png".Split()).Execute());
+        }
+
+        [TestMethod]
+        public void VerbOnInstance()
+        {
+            var container = new Container
+            {
+                Field = 10
+            };
+            Assert.AreEqual(2, Parsers.Setup.MethodAttributes(instance: container).Parse("Instance".Split()).Execute());
+        }
+
         class Container
         {
+            public int Field = 0;
+
             [Verb("numbers")]
             public int NumbersTest([NamedCollectionOption("numbers")] IEnumerable<int> numbers)
             {
@@ -73,6 +97,26 @@ namespace Colipars.Test
                 Assert.AreEqual("outputfile.png", output);
             }
 
+            [Verb("DefaultParameter")]
+            public void DefaultValue([NamedOption("output")] string output, int myNumber = 32)
+            {
+                Assert.AreEqual(32, myNumber);
+                Assert.AreEqual("outputfile.png", output);
+            }
+
+            [Verb("StaticMethod")]
+            public static int StaticMethod([PositionalOption(0)] string output)
+            {
+                Assert.AreEqual("outputfile.png", output);
+                return 2;
+            }
+
+            [Verb("Instance")]
+            public int Instance()
+            {
+                Assert.AreEqual(10, Field);
+                return 2;
+            }
         }
     }
 }

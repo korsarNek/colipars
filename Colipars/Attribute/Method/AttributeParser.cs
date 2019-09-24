@@ -76,7 +76,7 @@ namespace Colipars.Attribute.Method
                 Configuration.GetParameterValueOption(optionValue.Option).SetValue(optionValue.Value);
             }
 
-            return AttributeParseResult.CreateSuccessResult(safeVerb, verbData.Method, verbData.Instance, verbData.Parameters.Select((x) => x.Value).ToArray());
+            return AttributeParseResult.CreateSuccessResult(safeVerb, Configuration.Services.GetService<IErrorHandler>(), verbData.Method, verbData.Instance, verbData.Parameters.Select((x) => x.Value).ToArray());
         }
 
         IParseResult IParser.Parse(IEnumerable<string> args)

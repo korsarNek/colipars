@@ -34,10 +34,11 @@ namespace Colipars.Attribute.Class
             }
         }
 
-        private AttributeParseResult(IVerb verb, object customObject)
+        private AttributeParseResult(IVerb verb, IErrorHandler errorHandler, object customObject)
         {
             Verb = verb ?? throw new ArgumentNullException(nameof(verb));
             Errors = new IError[0];
+            ErrorHandler = errorHandler;
             _customObject = customObject ?? throw new ArgumentNullException(nameof(customObject));
         }
 
@@ -343,9 +344,9 @@ namespace Colipars.Attribute.Class
             return new AttributeParseResult(verb, errorHandler, errors);
         }
 
-        public static AttributeParseResult CreateSuccessResult(IVerb verb, object customObject)
+        public static AttributeParseResult CreateSuccessResult(IVerb verb, IErrorHandler errorHandler, object customObject)
         {
-            return new AttributeParseResult(verb, customObject);
+            return new AttributeParseResult(verb, errorHandler, customObject);
         }
     }
 }

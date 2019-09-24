@@ -53,10 +53,11 @@ namespace Colipars.Attribute.Method
             _parameters = new object[0];
         }
 
-        private AttributeParseResult(IVerb verb, MethodInfo method, object instance, object?[] parameters)
+        private AttributeParseResult(IVerb verb, IErrorHandler errorHandler, MethodInfo method, object? instance, object?[] parameters)
         {
             Verb = verb ?? throw new ArgumentNullException(nameof(verb));
             Errors = new IError[0];
+            _errorHandler = errorHandler;
             _method = method;
             _instance = instance;
             _parameters = parameters;
@@ -129,9 +130,9 @@ namespace Colipars.Attribute.Method
             return new AttributeParseResult(verb, errorHandler, errors);
         }
 
-        public static AttributeParseResult CreateSuccessResult(IVerb verb, MethodInfo method, object instance, object?[] parameters)
+        public static AttributeParseResult CreateSuccessResult(IVerb verb, IErrorHandler errorHandler, MethodInfo method, object? instance, object?[] parameters)
         {
-            return new AttributeParseResult(verb, method, instance, parameters);
+            return new AttributeParseResult(verb, errorHandler, method, instance, parameters);
         }
     }
 }
