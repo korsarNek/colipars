@@ -8,11 +8,11 @@ namespace Colipars.Attribute
     {
         public string Name { get; }
 
-        public string Alias { get; set; }
+        public string Alias { get; set; } = String.Empty;
 
         public bool Required { get; set; }
 
-        public string Description { get; set; }
+        public string Description { get; set; } = String.Empty;
 
         public NamedOptionAttribute(string name)
         {

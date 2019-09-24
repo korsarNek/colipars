@@ -7,7 +7,7 @@ namespace Colipars.Attribute
 {
     public class ServiceProvider : IServiceProvider
     {
-        private static ServiceProvider _defaultInstance = null;
+        private static ServiceProvider? _defaultInstance = null;
 
         public static ServiceProvider Default
         {
@@ -28,25 +28,25 @@ namespace Colipars.Attribute
             }
         }
 
-        private Dictionary<Type, object> _serviceInstances = new Dictionary<Type, object>();
-        private Dictionary<Type, Func<object>> _serviceFactories = new Dictionary<Type, Func<object>>();
+        private readonly Dictionary<Type, object> _serviceInstances = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, Func<object>> _serviceFactories = new Dictionary<Type, Func<object>>();
 
-        public object GetService(Type serviceType)
+        public object? GetService(Type serviceType)
         {
             if (_serviceInstances.ContainsKey(serviceType))
                 return _serviceInstances[serviceType];
             else if (_serviceFactories.ContainsKey(serviceType))
                 return _serviceFactories[serviceType]();
 
-            throw new KeyNotFoundException($"No service for the type \"{serviceType}\" registered.");
+            return null;
         }
 
-        public void Register<T>(T instance)
+        public void Register<T>(T instance) where T : class
         {
             _serviceInstances[typeof(T)] = instance;
         }
 
-        public void Register<T>(Func<T> factory)
+        public void Register<T>(Func<T> factory) where T : class
         {
             _serviceInstances.Remove(typeof(T));
             _serviceFactories[typeof(T)] = () => factory();

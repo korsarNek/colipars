@@ -7,8 +7,8 @@ namespace Colipars.Internal
 {
     public class DefaultErrorHandler : IErrorHandler
     {
-        private IErrorPresenter _errorPresenter;
-        private IHelpPresenter _helpPresenter;
+        private readonly IErrorPresenter _errorPresenter;
+        private readonly IHelpPresenter _helpPresenter;
 
         private const int EXIT_CODE_VERB_ERROR = 100;
         private const int EXIT_CODE_ARGUMENT_ERROR = 101;

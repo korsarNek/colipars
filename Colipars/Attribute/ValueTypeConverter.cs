@@ -12,7 +12,7 @@ namespace Colipars.Attribute
 {
     public class ValueTypeConverter : IValueConverter
     {
-        private CultureInfo _cultureInfo;
+        private readonly CultureInfo _cultureInfo;
 
         public ValueTypeConverter(CultureInfo cultureInfo)
         {

@@ -6,24 +6,24 @@ using Colipars.Internal;
 
 namespace Colipars.Attribute.Class
 {
-    public class AttributeParseResult : IParseResult
+    public sealed class AttributeParseResult : IParseResult
     {
-        private object _handledOption;
+        private readonly object? _customObject = null;
 
-        public IVerb Verb { get; }
+        public IVerb? Verb { get; }
         public IEnumerable<IError> Errors { get; }
-        public bool HelpRequested { get; } = false;
+        public bool HelpRequested { get; private set; } = false;
 
         /// <summary>
         /// The error handler assigned as default for handling errors, can be null.
         /// Use the ErrorHandlerFunc if you want the HandleErrors function of it.
         /// </summary>
-        protected IErrorHandler ErrorHandler { get; } = null;
+        private IErrorHandler? ErrorHandler { get; } = null;
 
         /// <summary>
         /// An error handler function, uses the ErrorHandler if one exists, otherwise it returns a dummy function.
         /// </summary>
-        protected Func<IEnumerable<IError>, int> ErrorHandlerFunc
+        private Func<IEnumerable<IError>, int> ErrorHandlerFunc
         {
             get
             {
@@ -34,31 +34,21 @@ namespace Colipars.Attribute.Class
             }
         }
 
-        public AttributeParseResult(IVerb verb, IErrorHandler errorHandler, object handledOption)
+        private AttributeParseResult(IVerb verb, object customObject)
         {
             Verb = verb ?? throw new ArgumentNullException(nameof(verb));
             Errors = new IError[0];
-            ErrorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
-            _handledOption = handledOption ?? throw new ArgumentNullException(nameof(handledOption));
+            _customObject = customObject ?? throw new ArgumentNullException(nameof(customObject));
         }
 
-        /// <summary>
-        /// Constructor in case help was requested.
-        /// </summary>
-        /// <param name="verb"></param>
-        /// <param name="errorHandler"></param>
-        protected AttributeParseResult(IVerb verb)
+        private AttributeParseResult(IVerb? verb, IErrorHandler? errorHandler, IEnumerable<IError> errors)
         {
             Verb = verb;
-            Errors = new IError[0];
-            HelpRequested = true;
-        }
+            ErrorHandler = errorHandler;
+            Errors = errors;
 
-        public AttributeParseResult(IVerb verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
-        {
-            Verb = verb;
-            ErrorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
-            Errors = errors ?? new IError[0];
+            if (errors.Any() && errorHandler == null)
+                throw new ArgumentNullException(nameof(errorHandler), "The error handler must not be null if any errors exist.");
         }
 
         #region Map
@@ -103,13 +93,16 @@ namespace Colipars.Attribute.Class
 
         #region Map with error handler
 
-        public virtual int Map(Func<IVerb, int> verbHandler, Func<IEnumerable<IError>, int> errorsHandler)
+        public int Map(Func<IVerb, int> verbHandler, Func<IEnumerable<IError>, int> errorsHandler)
         {
             if (verbHandler == null) throw new ArgumentNullException(nameof(verbHandler));
             if (errorsHandler == null) throw new ArgumentNullException(nameof(errorsHandler));
 
             return MapInternal(() =>
             {
+                if (Verb == null)
+                    throw new LogicException("No verb exists for the parse result, but also no errors.");
+
                 return verbHandler(Verb);
             }, errorsHandler);
         }
@@ -121,9 +114,9 @@ namespace Colipars.Attribute.Class
 
             return MapInternal(() =>
             {
-                if (_handledOption is TOption) return optionHandler((TOption)_handledOption);
+                if (_customObject is TOption) return optionHandler((TOption)_customObject);
 
-                throw new InvalidOperationException($"The handled option was of type \"{_handledOption.GetType()}\" and not of one the requested types.");
+                throw new InvalidOperationException($"The handled option was of type \"{GetCustomObject().GetType()}\" and not of one the requested types.");
             }, errorsHandler);
         }
 
@@ -135,10 +128,10 @@ namespace Colipars.Attribute.Class
 
             return MapInternal(() =>
             {
-                if (_handledOption is TOption1) return option1Handler((TOption1)_handledOption);
-                if (_handledOption is TOption2) return option2Handler((TOption2)_handledOption);
+                if (_customObject is TOption1) return option1Handler((TOption1)_customObject);
+                if (_customObject is TOption2) return option2Handler((TOption2)_customObject);
 
-                throw new InvalidOperationException($"The handled option was of type \"{_handledOption.GetType()}\" and not of one the requested types.");
+                throw new InvalidOperationException($"The handled option was of type \"{GetCustomObject().GetType()}\" and not of one the requested types.");
             }, errorsHandler);
         }
 
@@ -151,11 +144,11 @@ namespace Colipars.Attribute.Class
 
             return MapInternal(() =>
             {
-                if (_handledOption is TOption1) return option1Handler((TOption1)_handledOption);
-                if (_handledOption is TOption2) return option2Handler((TOption2)_handledOption);
-                if (_handledOption is TOption3) return option3Handler((TOption3)_handledOption);
+                if (_customObject is TOption1) return option1Handler((TOption1)_customObject);
+                if (_customObject is TOption2) return option2Handler((TOption2)_customObject);
+                if (_customObject is TOption3) return option3Handler((TOption3)_customObject);
 
-                throw new InvalidOperationException($"The handled option was of type \"{_handledOption.GetType()}\" and not of one the requested types.");
+                throw new InvalidOperationException($"The handled option was of type \"{GetCustomObject().GetType()}\" and not of one the requested types.");
             }, errorsHandler);
         }
 
@@ -169,12 +162,12 @@ namespace Colipars.Attribute.Class
 
             return MapInternal(() =>
             {
-                if (_handledOption is TOption1) return option1Handler((TOption1)_handledOption);
-                if (_handledOption is TOption2) return option2Handler((TOption2)_handledOption);
-                if (_handledOption is TOption3) return option3Handler((TOption3)_handledOption);
-                if (_handledOption is TOption4) return option4Handler((TOption4)_handledOption);
+                if (_customObject is TOption1) return option1Handler((TOption1)_customObject);
+                if (_customObject is TOption2) return option2Handler((TOption2)_customObject);
+                if (_customObject is TOption3) return option3Handler((TOption3)_customObject);
+                if (_customObject is TOption4) return option4Handler((TOption4)_customObject);
 
-                throw new InvalidOperationException($"The handled option was of type \"{_handledOption.GetType()}\" and not of one the requested types.");
+                throw new InvalidOperationException($"The handled option was of type \"{GetCustomObject().GetType()}\" and not of one the requested types.");
             }, errorsHandler);
         }
 
@@ -188,8 +181,8 @@ namespace Colipars.Attribute.Class
             if (Errors.Any())
                 return errorsHandler(Errors);
 
-            if (_handledOption == null)
-                throw new InvalidOperationException("The parse result is no object, but neither help was request nor was there an error.");
+            if (_customObject == null)
+                throw new InvalidOperationException("The parse result is no object, but neither help was requested nor was there an error.");
 
             return handler();
         }
@@ -323,7 +316,7 @@ namespace Colipars.Attribute.Class
 
         /// <summary>
         /// The instance of the type that was successfully parsed.
-        /// If the help was shown, a InvalidOperationException gets thrown.
+        /// If the help was requested or the parsing was unsuccessful because of an error, an <see cref="InvalidOperationException"/> gets thrown.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
         public object GetCustomObject()
@@ -331,12 +324,28 @@ namespace Colipars.Attribute.Class
             if (HelpRequested)
                 throw new InvalidOperationException("Can't request the verb object, user requested showing the help.");
 
-            return _handledOption;
+            if (_customObject == null)
+                if (Errors.Any())
+                    throw new InvalidOperationException("There are errors which prevented a successful parse.");
+                else
+                    throw new LogicException("The parse didn't create errrors but no target object is available.");
+
+            return _customObject;
         }
 
-        public static AttributeParseResult CreateHelpRequest(IVerb verb = null)
+        public static AttributeParseResult CreateHelpRequest(IVerb? verb = null)
         {
-            return new AttributeParseResult(verb);
+            return new AttributeParseResult(verb, null, new IError[0]) { HelpRequested = true };
+        }
+
+        public static AttributeParseResult CreateErrorResult(IVerb? verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
+        {
+            return new AttributeParseResult(verb, errorHandler, errors);
+        }
+
+        public static AttributeParseResult CreateSuccessResult(IVerb verb, object customObject)
+        {
+            return new AttributeParseResult(verb, customObject);
         }
     }
 }

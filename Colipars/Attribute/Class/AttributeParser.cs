@@ -56,17 +56,24 @@ namespace Colipars.Attribute.Class
             if (!_attributeHandler.TryParseSelectedVerb(Configuration.Verbs, ref args, out var error, out var verb, out var requestedHelp))
             {
                 if (requestedHelp)
-                    return ShowHelp(verb);
-
-                return CreateErrorResult(verb, new[] { error });
+                    if (verb == null)
+                        return ShowHelp();
+                    else
+                        return ShowHelp(verb);
+                else if (error == null)
+                    throw new LogicException("The attribute handled didn't parse the result and no help was requested, but no error was generated.");
+                else
+                    return AttributeParseResult.CreateErrorResult(verb, Configuration.Services.GetService<IErrorHandler>(), new[] { error });
             }
 
-            if (!_attributeHandler.TryProcessArguments(verb, Configuration.GetOptions(verb), args, out var optionValues, out var errors))
+            IVerb safeVerb = verb ?? throw new LogicException("The attribute handler parsed the verb, but didn't return it.");
+
+            if (!_attributeHandler.TryProcessArguments(safeVerb, Configuration.GetOptions(safeVerb), args, out var optionValues, out var errors))
             {
-                return CreateErrorResult(verb, errors);
+                return AttributeParseResult.CreateErrorResult(verb, Configuration.Services.GetService<IErrorHandler>(), errors);
             }
 
-            var verbData = Configuration.GetVerbData(verb);
+            var verbData = Configuration.GetVerbData(safeVerb);
 
             foreach (var optionProperty in verbData.OptionProperties)
             {
@@ -77,17 +84,12 @@ namespace Colipars.Attribute.Class
                 optionProperty.SetValue(verbData.Instance, providedOption.Value);
             }
 
-            return new AttributeParseResult(verb, Configuration.Services.GetService<IErrorHandler>(), verbData.Instance);
+            return AttributeParseResult.CreateSuccessResult(safeVerb, verbData.Instance);
         }
 
         IParseResult IParser.Parse(IEnumerable<string> args)
         {
             return Parse(args);
-        }
-
-        protected AttributeParseResult CreateErrorResult(IVerb verb, IEnumerable<IError> errors)
-        {
-            return new AttributeParseResult(verb, Configuration.Services.GetService<IErrorHandler>(), errors);
         }
     }
 }

@@ -10,11 +10,11 @@ namespace Colipars.Attribute
     {
         public int Position { get; }
 
-        public string Description { get; set; }
+        public string Description { get; set; } = String.Empty;
 
         string IOption.Name => $"[{Position}]";
 
-        string IOption.Alias => null;
+        string IOption.Alias => String.Empty;
 
         bool IOption.Required => true;
 

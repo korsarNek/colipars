@@ -11,18 +11,40 @@ namespace Colipars.Attribute.Method
 {
     public class AttributeConfiguration : Configuration
     {
-        private Dictionary<IVerb, VerbData> _verbData;
+        private readonly Dictionary<IVerb, VerbData> _verbData = new Dictionary<IVerb, VerbData>();
 
-        internal AttributeConfiguration(IServiceProvider serviceProvider)
+        internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes)
             : base(serviceProvider)
         {
+            foreach (var type in optionTypes)
+            {
+                var typeInfo = type.GetTypeInfo();
+
+                foreach (var methodVerbPair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance).Select((x) => new KeyValuePair<MethodInfo, IVerb?>(x, GetVerbFromMethod(x))).Where((x) => x.Value != null))
+                {
+                    var parameterOptions = new List<IParameterValue>();
+                    foreach (var parameter in methodVerbPair.Key.GetParameters())
+                    {
+                        var option = AttributeHandler.GetOption(this, methodVerbPair.Key.ToString(), parameter);
+                        if (option == null)
+                            if (parameter.HasDefaultValue)
+                                parameterOptions.Add(new DefaultValueParameter(parameter));
+                            else
+                                throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{methodVerbPair.Key.DeclaringType.FullName + ":" + methodVerbPair.Key.Name}\" for the verb \"{methodVerbPair.Value.Name}\" has neither an option, nor a default value.");
+                        else
+                            parameterOptions.Add(new ParameterValueOption(parameter, option, methodVerbPair.Key));
+                    }
+
+                    _verbData.Add(methodVerbPair.Value, new VerbData(methodVerbPair.Value, methodVerbPair.Key, () => AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]), parameterOptions));
+                }
+            }
         }
 
         public override IEnumerable<IVerb> Verbs => _verbData.Keys;
 
         public override IEnumerable<IOption> GetOptions(IVerb verb)
         {
-            return _verbData[verb].ParameterOptions.Select((x) => x.Option).Where((x) => x != null);
+            return _verbData[verb].ParameterOptions.Select((x) => x.Option).WhereNotNull();
         }
 
         public void UseAsDefault<T>(string methodName)
@@ -31,32 +53,7 @@ namespace Colipars.Attribute.Method
             DefaultVerb = GetVerbFromMethod(typeof(T).GetMethod(methodName));
         }
 
-        internal void Initialize(IEnumerable<Type> optionTypes)
-        {
-            _verbData = new Dictionary<IVerb, VerbData>();
-
-            foreach (var type in optionTypes)
-            {
-                var typeInfo = type.GetTypeInfo();
-
-                foreach (var methodVerbPair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance).Select((x) => new KeyValuePair<MethodInfo, IVerb>(x, GetVerbFromMethod(x))).Where((x) => x.Value != null))
-                {
-                    var parameterOptions = new List<ParameterValueOption>();
-                    foreach (var parameter in methodVerbPair.Key.GetParameters())
-                    {
-                        var option = AttributeHandler.GetOption(this, methodVerbPair.Key.ToString(), parameter);
-                        if (option == null && !parameter.HasDefaultValue)
-                            throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{methodVerbPair.Key.Name}\" has no option attribute and no default value.");
-
-                        parameterOptions.Add(new ParameterValueOption(parameter, option));
-                    }
-
-                    _verbData.Add(methodVerbPair.Value, new VerbData(methodVerbPair.Value, methodVerbPair.Key, () => AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]), parameterOptions));
-                }
-            }
-        }
-
-        public static IVerb GetVerbFromMethod(MethodInfo method) => method.GetCustomAttribute<VerbAttribute>(inherit: true);
+        public static IVerb? GetVerbFromMethod(MethodInfo method) => method.GetCustomAttribute<VerbAttribute>(inherit: true);
 
         internal VerbData GetVerbData(IVerb verb)
         {
@@ -77,8 +74,8 @@ namespace Colipars.Attribute.Method
 
         internal class VerbData
         {
-            private Func<object> _instanceFactory;
-            private object _instance = null;
+            private readonly Func<object> _instanceFactory;
+            private object? _instance = null;
 
             public IVerb Verb { get; set; }
             public MethodInfo Method { get; set; }
@@ -93,62 +90,84 @@ namespace Colipars.Attribute.Method
                     return _instance;
                 }
             }
-            public IEnumerable<ParameterValueOption> ParameterOptions { get; }
 
-            public VerbData(IVerb verb, MethodInfo method, Func<object> instanceFactory, IEnumerable<ParameterValueOption> parameterOptions)
+            public IEnumerable<IParameterValue> Parameters { get; }
+
+            public IEnumerable<ParameterValueOption> ParameterOptions => Parameters.OfType<ParameterValueOption>();
+
+            public VerbData(IVerb verb, MethodInfo method, Func<object> instanceFactory, IEnumerable<IParameterValue> parameterOptions)
             {
                 Verb = verb;
                 Method = method;
                 _instanceFactory = instanceFactory;
-                ParameterOptions = parameterOptions;
-            }
-
-            public ParameterValueOption GetParameterValueOption(IOption option)
-            {
-                return ParameterOptions.First((x) => x.Option == option);
+                Parameters = parameterOptions;
             }
         }
 
-        internal class ParameterValueOption
+        internal interface IParameterValue
         {
-            private object _value = null;
+            public ParameterInfo ParameterInfo { get; }
 
+            public object? Value { get; }
+        }
+
+        internal class ParameterValueOption : IParameterValue
+        {
             public ParameterInfo ParameterInfo { get; }
             public IOption Option { get; }
 
-            public ParameterValueOption(ParameterInfo parameterInfo, IOption option)
-            {
-                ParameterInfo = parameterInfo ?? throw new ArgumentNullException(nameof(parameterInfo));
-                Option = option;
+            public object? Value { get; private set; } = null;
 
-                if (ParameterInfo.HasDefaultValue)
-                    _value = ParameterInfo.DefaultValue;
+            private readonly MethodInfo _methodInfo;
+
+            public ParameterValueOption(ParameterInfo parameterInfo, IOption option, MethodInfo methodInfo)
+            {
+                ParameterInfo = parameterInfo;
+                Option = option;
+                _methodInfo = methodInfo;
             }
 
-            public object Value => _value;
+            private string MethodName => _methodInfo.DeclaringType.FullName + ":" + _methodInfo.Name;
 
-            public void SetValue(object value)
+            public void SetValue(object? value)
             {
                 if (AttributeHandler.IsCollectionAttribute(Option))
                 {
+                    if (value == null) throw new InvalidOperationException($"The target value for the property \"{ParameterInfo.Name}\" on \"{MethodName}\" is null, but it is marked as a collection.");
+
                     //TODO: Create element of the correct type.
-                    if (_value == null)
+                    if (Value == null)
                     {
                         var constructor = ParameterInfo.ParameterType.GetConstructors().FirstOrDefault((x) => x.IsPublic && x.GetParameters().Length == 0);
                         if (constructor != null)
-                            _value = constructor.Invoke(new object[0]);
+                            Value = constructor.Invoke(new object[0]);
                         else
-                            _value = Activator.CreateInstance(typeof(List<>).MakeGenericType(AttributeHandler.GetValueType(Option, ParameterInfo.ParameterType)));
+                            Value = Activator.CreateInstance(typeof(List<>).MakeGenericType(AttributeHandler.GetValueType(Option, ParameterInfo.ParameterType)));
                     }
 
-                    var list = (IList)_value;
+                    var list = (IList)Value;
+
+                    list.Clear();
                     foreach (var element in (IList)value)
                         list.Add(element);
                 }
                 else
                 {
-                    _value = value;
+                    Value = value;
                 }
+            }
+        }
+
+        internal class DefaultValueParameter : IParameterValue
+        {
+            public ParameterInfo ParameterInfo { get; }
+
+            public object? Value { get; private set; }
+
+            public DefaultValueParameter(ParameterInfo parameterInfo)
+            {
+                ParameterInfo = parameterInfo;
+                Value = parameterInfo.DefaultValue;
             }
         }
     }

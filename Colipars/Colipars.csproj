@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
@@ -13,12 +13,15 @@
     <NeutralLanguage>en-001</NeutralLanguage>
     <Authors>korsarNek</Authors>
     <Company />
-    <PackageReleaseNotes>Allows now attributes on methods and parameters instead of classes and properties.</PackageReleaseNotes>
+    <PackageReleaseNotes>Verbs on methods can now be executed on a given instance instead of the parser creating that instance.
+Verbs can now also be on static methods.</PackageReleaseNotes>
     <NullableReferenceTypes>true</NullableReferenceTypes>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
     <LangVersion>8.0</LangVersion>
-    <WarningsAsErrors>NU1605,8632,8618,8625,8603,8601</WarningsAsErrors>
+    <WarningsAsErrors>NU1605,8632,8618,8625,8603,8601,8602,8612,8604,8620,8600,8619</WarningsAsErrors>
+    <AssemblyVersion>0.11.0.0</AssemblyVersion>
+    <FileVersion>0.11.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

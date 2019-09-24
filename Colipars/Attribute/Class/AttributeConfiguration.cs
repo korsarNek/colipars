@@ -10,27 +10,11 @@ namespace Colipars.Attribute.Class
 {
     public class AttributeConfiguration : Configuration
     {
-        Dictionary<IVerb, VerbData>  _verbsData;
+        readonly Dictionary<IVerb, VerbData>  _verbsData = new Dictionary<IVerb, VerbData>();
 
-        internal AttributeConfiguration(IServiceProvider serviceProvider)
+        internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes)
             : base(serviceProvider)
         {
-
-        }
-
-        public override IEnumerable<IVerb> Verbs => _verbsData.Keys;
-
-        public void UseAsDefault<T>()
-        {
-            DefaultVerb = GetVerbFromType(typeof(T));
-        }
-
-        public override IEnumerable<IOption> GetOptions(IVerb verb) => _verbsData[verb].OptionProperties.Select((x) => x.Option);
-
-        internal void Initialize(IEnumerable<Type> optionTypes)
-        {
-            _verbsData = new Dictionary<IVerb, VerbData>();
-
             foreach (var type in optionTypes)
             {
                 var typeInfo = type.GetTypeInfo();
@@ -43,13 +27,22 @@ namespace Colipars.Attribute.Class
                     var option = AttributeHandler.GetOption(this, type.Name, property);
                     if (option != null)
                     {
-                        options.Add(new OptionProperty() { Option = option, PropertyInfo = property });
+                        options.Add(new OptionProperty(option, property));
                     }
                 }
 
                 _verbsData.Add(verb, new VerbData(verb, () => AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]), options));
             }
         }
+
+        public override IEnumerable<IVerb> Verbs => _verbsData.Keys;
+
+        public void UseAsDefault<T>()
+        {
+            DefaultVerb = GetVerbFromType(typeof(T));
+        }
+
+        public override IEnumerable<IOption> GetOptions(IVerb verb) => _verbsData[verb].OptionProperties.Select((x) => x.Option);
 
         internal VerbData GetVerbData(IVerb verb) => _verbsData[verb];
 
@@ -73,6 +66,10 @@ namespace Colipars.Attribute.Class
             private object? _instance = null;
 
             public IVerb Verb { get; set; }
+
+            /// <summary>
+            /// The instance of the class on which the verb is defined.
+            /// </summary>
             public object Instance
             {
                 get
@@ -96,26 +93,34 @@ namespace Colipars.Attribute.Class
 
         internal class OptionProperty
         {
-            public IOption Option { get; set; }
-            public PropertyInfo PropertyInfo { get; set; }
+            public IOption Option { get; private set; }
+            public PropertyInfo PropertyInfo { get; private set; }
+
+            public OptionProperty(IOption option, PropertyInfo propertyInfo)
+            {
+                Option = option;
+                PropertyInfo = propertyInfo;
+            }
 
             /// <summary>
             /// Sets the value of the property, or if it has a NamedCollectionOption, adds it to the collection of the property value.
             /// </summary>
             /// <param name="instance"></param>
             /// <param name="value"></param>
-            public void SetValue(object instance, object value)
+            public void SetValue(object instance, object? value)
             {
                 if (AttributeHandler.IsCollectionAttribute(Option))
                 {
+                    if (value == null) throw new InvalidOperationException($"The target value for the property \"{PropertyInfo.Name}\" on \"{PropertyInfo.DeclaringType}\" is null, but it is marked as a collection.");
                     var propertyValue = PropertyInfo.GetValue(instance) ?? throw new InvalidOperationException($"The property \"{PropertyInfo.Name}\" on \"{PropertyInfo.DeclaringType}\" must return an instance.");
 
                     //TODO: use ICollection for this case, instead of IList.
                     //that way we don't demand both IList and ICollection<>
-                    var collection = (IList)propertyValue;
+                    var list = (IList)propertyValue;
 
+                    list.Clear();
                     foreach (var element in (IList)value)
-                        collection.Add(element);
+                        list.Add(element);
                 }
                 else
                 {

@@ -11,8 +11,8 @@ namespace Colipars.Attribute.Method
 {
     public class AttributeParser : IParser<AttributeParseResult>
     {
-        private IHelpPresenter _helpPresenter;
-        private AttributeHandler _attributeHandler;
+        private readonly IHelpPresenter _helpPresenter;
+        private readonly AttributeHandler _attributeHandler;
 
         public AttributeParser(AttributeConfiguration configuration, IParameterFormatter parameterFormatter, IValueConverter valueConverter, IHelpPresenter helpPresenter)
         {
@@ -48,33 +48,35 @@ namespace Colipars.Attribute.Method
 
         #endregion
 
-        protected AttributeParseResult CreateErrorResult(IVerb verb, IEnumerable<IError> errors)
-        {
-            return new AttributeParseResult(verb, Configuration.Services.GetService<IErrorHandler>(), errors);
-        }
-
         public AttributeParseResult Parse(IEnumerable<string> args)
         {
             if (!_attributeHandler.TryParseSelectedVerb(Configuration.Verbs, ref args, out var error, out var verb, out var requestedHelp))
             {
                 if (requestedHelp)
-                    return ShowHelp(verb);
-
-                return CreateErrorResult(verb, new[] { error });
+                    if (verb == null)
+                        return ShowHelp();
+                    else
+                        return ShowHelp(verb);
+                else if(error == null)
+                    throw new LogicException("The attribute handled didn't parse the result and no help was requested, but no error was generated.");
+                else
+                    return AttributeParseResult.CreateErrorResult(verb, Configuration.Services.GetService<IErrorHandler>(), new[] { error });
             }
 
-            if (!_attributeHandler.TryProcessArguments(verb, Configuration.GetOptions(verb), args, out var optionValues, out var errors))
+            IVerb safeVerb = verb ?? throw new InvalidOperationException("The attribute handler parsed the verb, but didn't return it.");
+
+            if (!_attributeHandler.TryProcessArguments(safeVerb, Configuration.GetOptions(safeVerb), args, out var optionValues, out var errors))
             {
-                return CreateErrorResult(verb, errors);
+                return AttributeParseResult.CreateErrorResult(verb, Configuration.Services.GetService<IErrorHandler>(), errors);
             }
 
-            var verbData = Configuration.GetVerbData(verb);
+            var verbData = Configuration.GetVerbData(safeVerb);
             foreach (var optionValue in optionValues)
             {
-                verbData.GetParameterValueOption(optionValue.Option).SetValue(optionValue.Value);
+                Configuration.GetParameterValueOption(optionValue.Option).SetValue(optionValue.Value);
             }
 
-            return new AttributeParseResult(verb, Configuration.Services.GetService<IErrorHandler>(), verbData.Method, verbData.Instance, verbData.ParameterOptions.Select((x) => x.Value).ToArray());
+            return AttributeParseResult.CreateSuccessResult(safeVerb, verbData.Method, verbData.Instance, verbData.Parameters.Select((x) => x.Value).ToArray());
         }
 
         IParseResult IParser.Parse(IEnumerable<string> args)

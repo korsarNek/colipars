@@ -10,11 +10,11 @@ namespace Colipars.Attribute
     {
         public string Name { get; }
 
-        public string ShortHand { get; set; }
+        public string ShortHand { get; set; } = String.Empty;
 
         public bool Required { get; set; }
 
-        public string Description { get; set; }
+        public string Description { get; set; } = String.Empty;
 
         string IOption.Alias => ShortHand;
 

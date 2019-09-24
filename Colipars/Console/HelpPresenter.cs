@@ -11,7 +11,7 @@ namespace Colipars.Console
     {
         public Configuration Configuration { get; }
 
-        private IParameterFormatter _parameterFormatter;
+        private readonly IParameterFormatter _parameterFormatter;
 
         public HelpPresenter(Configuration configuration, IParameterFormatter parameterFormatter)
         {

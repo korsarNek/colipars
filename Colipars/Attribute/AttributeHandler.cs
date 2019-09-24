@@ -12,10 +12,10 @@ namespace Colipars.Attribute
     //TODO: use this as base for the attributeParsers
     class AttributeHandler
     {
-        private Func<IOption, string, object> _valueConverter;
-        private Func<IOption, Type> _memberTypeFromOption;
-        private IParameterFormatter _parameterFormatter;
-        private Configuration _configuration;
+        private readonly Func<IOption, string, object> _valueConverter;
+        private readonly Func<IOption, Type> _memberTypeFromOption;
+        private readonly IParameterFormatter _parameterFormatter;
+        private readonly Configuration _configuration;
 
         public AttributeHandler(Configuration configuration, IParameterFormatter parameterFormatter, Func<IOption, string, object> valueConverter, Func<IOption, Type> memberTypeFromOption)
         {
@@ -46,8 +46,8 @@ namespace Colipars.Attribute
                 var parameterName = _parameterFormatter.Parse(argument);
 
                 if (HandleNamedOption(argsArray, ref i, parameterName, providedOptions, namedOptions)) { continue; }
-                else if (HandleFlagOption(argument, parameterName, providedOptions, flagOptions)) { continue; }
-                else if (HandlePositionOption(argument, parameterName, providedOptions, positionalOptions, ref positionalArgumentCount)) { continue; }
+                else if (HandleFlagOption(parameterName, providedOptions, flagOptions)) { continue; }
+                else if (HandlePositionOption(argument, providedOptions, positionalOptions, ref positionalArgumentCount)) { continue; }
                 else if (HandleNamedCollectionOption(argsArray, ref i, parameterName, providedOptions, namedCollectionOptions, flagOptions, namedOptions)) { continue; }
                 {
                     optionValues = new OptionAndValue[0];
@@ -66,7 +66,7 @@ namespace Colipars.Attribute
                     errors = new IError[] { new RequiredParameterMissingError(verb, requiredOption.Name) };
                     return false;
                 }
-                else if (providedOption.Option is NamedCollectionOptionAttribute collectionOption && ((IList)providedOption.Value).Count < collectionOption.MinimumCount)
+                else if (providedOption.Option is NamedCollectionOptionAttribute collectionOption && providedOption.ValueAsList().Count < collectionOption.MinimumCount)
                 {
                     optionValues = new OptionAndValue[0];
                     errors = new IError[] { new NotEnoughElementsError(verb, collectionOption.Name, collectionOption.MinimumCount) };
@@ -78,8 +78,9 @@ namespace Colipars.Attribute
             errors = new IError[0];
             return true;
         }
-
-        public bool TryParseSelectedVerb(IEnumerable<IVerb> verbs, ref IEnumerable<string> args, out IError error, out IVerb selectedVerb, out bool requestedHelp)
+        
+        //TODO: get rid of LogicExceptions in the code that call this function by returning different types that represent the different possible value combinations.
+        public bool TryParseSelectedVerb(IEnumerable<IVerb> verbs, ref IEnumerable<string> args, out IError? error, out IVerb? selectedVerb, out bool requestedHelp)
         {
             requestedHelp = false;
             error = null;
@@ -127,7 +128,7 @@ namespace Colipars.Attribute
             return true;
         }
 
-        private bool HandleFlagOption(string argument, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<FlagOptionAttribute> flagOptions)
+        private bool HandleFlagOption(string parameterName, List<OptionAndValue> providedOptions, IEnumerable<FlagOptionAttribute> flagOptions)
         {
             var flagOption = GetFlagOption(parameterName, flagOptions);
             if (flagOption != null)
@@ -149,7 +150,7 @@ namespace Colipars.Attribute
             return false;
         }
 
-        private bool HandlePositionOption(string argument, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<PositionalOptionAttribute> positionalOptions, ref int positionalArgumentCounter)
+        private bool HandlePositionOption(string argument, List<OptionAndValue> providedOptions, IEnumerable<PositionalOptionAttribute> positionalOptions, ref int positionalArgumentCounter)
         {
             var positionalOption = positionalOptions.ElementAtOrDefault(positionalArgumentCounter);
             if (positionalOption != null)
@@ -232,16 +233,31 @@ namespace Colipars.Attribute
             return constructor;
         }
 
-        public static IOption GetOption(Configuration configuration, string parentIdentifier, ICustomAttributeProvider attributeProvider)
+        /// <summary>
+        /// Returns a supported <see cref="IOption"/> Attribute from the given AttributeProvider, or null if no valid supported option has been found.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="parentIdentifier"></param>
+        /// <param name="attributeProvider"></param>
+        /// <exception cref="AmbiguousMatchException">Gets thrown if an option name conflicts with help argument name.</exception>
+        /// <returns></returns>
+        public static IOption? GetOption(Configuration configuration, string parentIdentifier, ICustomAttributeProvider attributeProvider)
         {
             return Validate(configuration, parentIdentifier,
                 attributeProvider.GetCustomAttribute<NamedOptionAttribute>() ??
                 attributeProvider.GetCustomAttribute<PositionalOptionAttribute>() ??
                 attributeProvider.GetCustomAttribute<NamedCollectionOptionAttribute>() ??
-                (IOption)attributeProvider.GetCustomAttribute<FlagOptionAttribute>()
+                (IOption?)attributeProvider.GetCustomAttribute<FlagOptionAttribute>()
             );
         }
 
+        /// <summary>
+        /// Gets the value type of the given type.
+        /// That is either the given type, or in case that the option is for a collection, the type of the collection elements.
+        /// </summary>
+        /// <param name="option"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static Type GetValueType(IOption option, Type type)
         {
             if (IsCollectionAttribute(option))
@@ -254,7 +270,7 @@ namespace Colipars.Attribute
             return type;
         }
 
-        private static IOption Validate(Configuration configuration, string parentIdentifier, IOption option)
+        private static IOption? Validate(Configuration configuration, string parentIdentifier, IOption? option)
         {
             if (option == null)
                 return null;
