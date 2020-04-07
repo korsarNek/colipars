@@ -19,7 +19,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseNamed()
         {
-            var exitCode = Parsers.Setup.ClassAttributes<Command>().Parse("test --value test -n 0.42".Split()).Map((Command command) => command.Execute(), (IEnumerable<IError> errors) => 1);
+            var exitCode = Parsers.Setup.ClassAttributes<Command>().Parse("test --value test -n 0.42".Split()).Map((Command command) => command.Execute(), (errors) => 1);
 
             Assert.AreEqual(40, exitCode);
         }

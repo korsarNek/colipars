@@ -18,14 +18,16 @@ namespace Colipars
         public IVerb? DefaultVerb { get; set; }
 
         //TODO: make it easier to replace the services we use.
-        public IServiceProvider Services { get; }
+        public abstract IServiceProvider Services { get; }
+
+        /// <summary>
+        /// Whether to show the help if no verb was provided.
+        ///
+        /// Default is false.
+        /// </summary>
+        public bool ShowHelpOnMissingVerb { get; set; } = false;
 
         public abstract IEnumerable<IVerb> Verbs { get; }
-
-        public Configuration(IServiceProvider serviceProvider)
-        {
-            Services = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        }
 
         public abstract IEnumerable<IOption> GetOptions(IVerb verb);
     }

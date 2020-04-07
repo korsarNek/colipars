@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Colipars.Internal
 {
-    public class DefaultErrorHandler : IErrorHandler
+    public class DefaultErrorHandler
     {
         private readonly IErrorPresenter _errorPresenter;
         private readonly IHelpPresenter _helpPresenter;

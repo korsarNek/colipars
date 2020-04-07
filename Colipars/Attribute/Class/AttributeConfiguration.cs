@@ -10,11 +10,12 @@ namespace Colipars.Attribute.Class
 {
     public class AttributeConfiguration : Configuration
     {
-        readonly Dictionary<IVerb, VerbData>  _verbsData = new Dictionary<IVerb, VerbData>();
+        private readonly Dictionary<IVerb, VerbData>  _verbsData = new Dictionary<IVerb, VerbData>();
+        private readonly IServiceProvider _serviceProvider;
 
         internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes)
-            : base(serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             foreach (var type in optionTypes)
             {
                 var typeInfo = type.GetTypeInfo();
@@ -34,6 +35,8 @@ namespace Colipars.Attribute.Class
                 _verbsData.Add(verb, new VerbData(verb, () => AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]), options));
             }
         }
+
+        public override IServiceProvider Services => _serviceProvider;
 
         public override IEnumerable<IVerb> Verbs => _verbsData.Keys;
 

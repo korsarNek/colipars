@@ -13,7 +13,7 @@ namespace Colipars
         public static AttributeParser ClassAttributes(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null, params Type[] optionTypes)
 #pragma warning restore IDE0060 // Nicht verwendete Parameter entfernen
         {
-            var serviceProvider = ServiceProvider.Default;
+            var serviceProvider = ServiceProvider.Default.Clone();
 
             var configuration = new AttributeConfiguration(serviceProvider, optionTypes);
             serviceProvider.Register<Configuration>(configuration);

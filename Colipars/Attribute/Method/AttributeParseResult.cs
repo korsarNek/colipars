@@ -16,48 +16,38 @@ namespace Colipars.Attribute.Method
 
         public bool HelpRequested { get; } = false;
 
-        private readonly IErrorHandler? _errorHandler = null;
+        private readonly ErrorHandler _defaultErrorHandler;
         private readonly MethodInfo? _method;
         private readonly object? _instance;
         private readonly object?[] _parameters;
-
-        private Func<IEnumerable<IError>, int> ErrorHandlerFunc
-        {
-            get
-            {
-                if (_errorHandler != null)
-                    return _errorHandler.HandleErrors;
-
-                return (_) => 1;
-            }
-        }
 
         /// <summary>
         /// Constructor for the case that help was requested.
         /// </summary>
         /// <param name="verb"></param>
-        private AttributeParseResult(IVerb? verb)
+        private AttributeParseResult(IVerb? verb, ErrorHandler defaultErrorHandler)
         {
             Verb = verb;
+            _defaultErrorHandler = defaultErrorHandler ?? throw new ArgumentNullException(nameof(defaultErrorHandler));
             HelpRequested = true;
             Errors = new IError[0];
             _parameters = new object[0];
         }
 
-        private AttributeParseResult(IVerb? verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
+        private AttributeParseResult(IVerb? verb, ErrorHandler defaultErrorHandler, IEnumerable<IError> errors)
         {
             //Verb not necessarily given in case of an error with the verb.
             Verb = verb;
-            _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
+            _defaultErrorHandler = defaultErrorHandler ?? throw new ArgumentNullException(nameof(defaultErrorHandler));
             Errors = errors ?? new IError[0];
             _parameters = new object[0];
         }
 
-        private AttributeParseResult(IVerb verb, IErrorHandler errorHandler, MethodInfo method, object? instance, object?[] parameters)
+        private AttributeParseResult(IVerb verb, ErrorHandler defaultErrorHandler, MethodInfo method, object? instance, object?[] parameters)
         {
             Verb = verb ?? throw new ArgumentNullException(nameof(verb));
             Errors = new IError[0];
-            _errorHandler = errorHandler;
+            _defaultErrorHandler = defaultErrorHandler ?? throw new ArgumentNullException(nameof(defaultErrorHandler));
             _method = method;
             _instance = instance;
             _parameters = parameters;
@@ -69,10 +59,10 @@ namespace Colipars.Attribute.Method
         /// <returns></returns>
         public int Execute()
         {
-            return Execute(ErrorHandlerFunc);
+            return Execute(_defaultErrorHandler);
         }
 
-        public int Execute(Func<IEnumerable<IError>, int> errorHandler)
+        public int Execute(ErrorHandler errorHandler)
         {
             if (errorHandler == null)
                 throw new ArgumentNullException(nameof(errorHandler));
@@ -100,10 +90,10 @@ namespace Colipars.Attribute.Method
         /// <returns>Returns true if no exception was thrown, otherwise false.</returns>
         public bool TryExecute(out int exitCode)
         {
-            return TryExecute(ErrorHandlerFunc, out exitCode);
+            return TryExecute(_defaultErrorHandler, out exitCode);
         }
 
-        public bool TryExecute(Func<IEnumerable<IError>, int> errorHandler, out int exitCode)
+        public bool TryExecute(ErrorHandler errorHandler, out int exitCode)
         {
             if (errorHandler == null)
                 throw new ArgumentNullException(nameof(errorHandler));
@@ -120,17 +110,17 @@ namespace Colipars.Attribute.Method
             }
         }
 
-        public static AttributeParseResult CreateHelpRequest(IVerb? verb = null)
+        public static AttributeParseResult CreateHelpRequest(IVerb? verb, ErrorHandler errorHandler)
         {
-            return new AttributeParseResult(verb);
+            return new AttributeParseResult(verb, errorHandler);
         }
 
-        public static AttributeParseResult CreateErrorResult(IVerb? verb, IErrorHandler errorHandler, IEnumerable<IError> errors)
+        public static AttributeParseResult CreateErrorResult(IVerb? verb, ErrorHandler errorHandler, IEnumerable<IError> errors)
         {
             return new AttributeParseResult(verb, errorHandler, errors);
         }
 
-        public static AttributeParseResult CreateSuccessResult(IVerb verb, IErrorHandler errorHandler, MethodInfo method, object? instance, object?[] parameters)
+        public static AttributeParseResult CreateSuccessResult(IVerb verb, ErrorHandler errorHandler, MethodInfo method, object? instance, object?[] parameters)
         {
             return new AttributeParseResult(verb, errorHandler, method, instance, parameters);
         }

@@ -93,6 +93,10 @@ namespace Colipars.Attribute
             {
                 selectedVerb = null;
                 error = new VerbIsMissingError();
+                if (_configuration.ShowHelpOnMissingVerb)
+                {
+                    requestedHelp = true;
+                }
                 return false;
             }
 

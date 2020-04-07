@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
-    <Version>0.10.0</Version>
+    <Version>0.12.0</Version>
     <Description>COmmand LIne PARSer</Description>
-    <PackageLicenseUrl>https://github.com/korsarNek/colipars/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/korsarNek/colipars</PackageProjectUrl>
     <RepositoryUrl>https://github.com/korsarNek/colipars</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -13,15 +13,17 @@
     <NeutralLanguage>en-001</NeutralLanguage>
     <Authors>korsarNek</Authors>
     <Company />
-    <PackageReleaseNotes>Verbs on methods can now be executed on a given instance instead of the parser creating that instance.
-Verbs can now also be on static methods.</PackageReleaseNotes>
+    <PackageReleaseNotes>- added option to show the help if no arguments have been given
+- changing services when setting up parsers does not influence the global service list
+- changed the error handler service from an interface to a delegate</PackageReleaseNotes>
     <NullableReferenceTypes>true</NullableReferenceTypes>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
     <LangVersion>8.0</LangVersion>
     <WarningsAsErrors>NU1605,8632,8618,8625,8603,8601,8602,8612,8604,8620,8600,8619</WarningsAsErrors>
-    <AssemblyVersion>0.11.0.0</AssemblyVersion>
-    <FileVersion>0.11.0.0</FileVersion>
+    <AssemblyVersion>0.12.0.0</AssemblyVersion>
+    <FileVersion>0.12.0.0</FileVersion>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -41,5 +43,12 @@ Verbs can now also be on static methods.</PackageReleaseNotes>
 
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 </Project>

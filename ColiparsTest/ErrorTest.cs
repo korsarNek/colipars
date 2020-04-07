@@ -15,7 +15,7 @@ namespace Colipars.Test
     public class ErrorTest
     {
         [TestMethod]
-        public void ShowHelpIfVerbIsMissing()
+        public void MissingVerbErrorIfNoneIsProvided()
         {
             var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>().Parse(new string[0]).Errors;
 
@@ -24,7 +24,22 @@ namespace Colipars.Test
         }
 
         [TestMethod]
-        public void ShowHelpIfRequiredOptionIsMissing()
+        public void ShowHelpIfVerbIsMissingAndAutoHelpIsEnabled()
+        {
+            Mock<IHelpPresenter> mock = new Mock<IHelpPresenter>();
+            mock.Setup(a => a.Present());
+
+            var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => {
+                c.ShowHelpOnMissingVerb = true;
+                ((ServiceProvider)c.Services).Register(mock.Object);
+            }).Parse(new string[0]).Errors;
+
+            Assert.AreEqual(0, errors.Count());
+            mock.VerifyAll();
+        }
+
+        [TestMethod]
+        public void ErrorIfRequiredOptionIsMissing()
         {
             var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => c.UseAsDefault<RequiredOptionCommand>()).Parse("BoolValue true".Split()).Errors;
 
@@ -49,6 +64,21 @@ namespace Colipars.Test
         }
 
         [TestMethod]
+        public void WriteErrorToConsoleIfRequiredOptionIsMissing()
+        {
+            Mock<ErrorHandler> mock = new Mock<ErrorHandler>();
+            mock.Setup(a => a(It.Is<IError[]>((errors) => errors.Length == 1 && errors.First().GetType() == typeof(RequiredParameterMissingError)))).Returns(1);
+
+            Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) =>
+            {
+                c.UseAsDefault<RequiredOptionCommand>();
+                ((ServiceProvider)c.Services).Register(mock.Object);
+            }).Parse("BoolValue true".Split()).Map<RequiredOptionCommand>((option) => { Assert.Fail("Called map even though there is an error"); return 1; });
+
+            mock.VerifyAll();
+        }
+
+        [TestMethod]
         public void TryMapWithoutError()
         {
             Parsers.Setup.ClassAttributes<RequiredOptionCommand>().Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => 12, out int exitCode);
@@ -59,12 +89,11 @@ namespace Colipars.Test
         [TestMethod]
         public void TryMapWithException()
         {
-            Mock<IErrorHandler> mock = new Mock<IErrorHandler>();
-            mock.Setup(a => a.HandleErrors(It.IsAny<IError[]>())).Returns(1);
+            Mock<ErrorHandler> mock = new Mock<ErrorHandler>();
+            mock.Setup(a => a(It.IsAny<IError[]>())).Returns(1);
 
-            Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => ((ServiceProvider)c.Services).Register<IErrorHandler>(mock.Object)).Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => throw new Exception(), out int exitCode);
+            Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => ((ServiceProvider)c.Services).Register<ErrorHandler>(mock.Object)).Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => throw new Exception(), out int exitCode);
 
-            //TODO: Check that the ErrorHandler got called.
             Assert.AreEqual(1, exitCode);
             mock.VerifyAll();
         }

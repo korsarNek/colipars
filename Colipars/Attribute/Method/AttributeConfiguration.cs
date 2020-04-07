@@ -12,10 +12,11 @@ namespace Colipars.Attribute.Method
     public class AttributeConfiguration : Configuration
     {
         private readonly Dictionary<IVerb, VerbData> _verbData = new Dictionary<IVerb, VerbData>();
+        private readonly IServiceProvider _serviceProvider;
 
         internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes, object? instance = null)
-            : base(serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             foreach (var type in optionTypes)
             {
                 var typeInfo = type.GetTypeInfo();
@@ -45,6 +46,8 @@ namespace Colipars.Attribute.Method
             }
         }
 
+        public override IServiceProvider Services => _serviceProvider;
+
         public override IEnumerable<IVerb> Verbs => _verbData.Keys;
 
         public override IEnumerable<IOption> GetOptions(IVerb verb)
@@ -52,10 +55,27 @@ namespace Colipars.Attribute.Method
             return _verbData[verb].ParameterOptions.Select((x) => x.Option).WhereNotNull();
         }
 
+        /// <summary>
+        /// Sets the default verb to the given method if none was provided through the arguments.
+        /// The method needs to have a <see cref="VerbAttribute"/> on it.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="methodName"></param>
+        /// <exception cref="System.Reflection.AmbiguousMatchException"></exception>
+        /// <exception cref="System.ArgumentNullException"></exception>
+        /// <exception cref="System.MissingMethodException"></exception>
+        /// <exception cref="Colipars.Attribute.NoVerbException"></exception>
         public void UseAsDefault<T>(string methodName)
         {
-            //TODO: throw exception if method doesn't exist or doesn't provide the attribute.
-            DefaultVerb = GetVerbFromMethod(typeof(T).GetMethod(methodName));
+            var method = typeof(T).GetMethod(methodName);
+            if (method == null)
+                throw new MissingMethodException(typeof(T).FullName, methodName);
+
+            var verb = GetVerbFromMethod(typeof(T).GetMethod(methodName));
+            if (verb == null)
+                throw new NoVerbException($"The method \"{method.Name}\" has no verb attribute.");
+
+            DefaultVerb = verb;
         }
 
         public static IVerb? GetVerbFromMethod(MethodInfo method) => method.GetCustomAttribute<VerbAttribute>(inherit: true);
