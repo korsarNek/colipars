@@ -83,5 +83,15 @@ namespace Colipars.Attribute.Method
         {
             return Parse(args);
         }
+
+        IParseResult IParser.ShowHelp(IVerb verb)
+        {
+            return ShowHelp(verb);
+        }
+
+        IParseResult IParser.ShowHelp()
+        {
+            return ShowHelp();
+        }
     }
 }

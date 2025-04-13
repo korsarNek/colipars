@@ -73,7 +73,7 @@ namespace Colipars.Test
             {
                 c.UseAsDefault<RequiredOptionCommand>();
                 ((ServiceProvider)c.Services).Register(mock.Object);
-            }).Parse("BoolValue true".Split()).Map<RequiredOptionCommand>((option) => { Assert.Fail("Called map even though there is an error"); return 1; });
+            }).Parse("BoolValue true".Split()).Map((option) => { Assert.Fail("Called map even though there is an error"); return 1; });
 
             mock.VerifyAll();
         }

@@ -30,22 +30,22 @@ namespace Colipars
             );
         }
 
-        public static AttributeParser ClassAttributes<TOption>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null)
+        public static IParser<SingleAttributeParseResult<TOption>> ClassAttributes<TOption>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null) where TOption : class
         {
-            return ClassAttributes(instance, configure, typeof(TOption));
+            return new SingleOptionAttributeParser<TOption>(ClassAttributes(instance, configure, typeof(TOption)));
         }
 
-        public static AttributeParser ClassAttributes<TOption1, TOption2>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null)
+        public static IParser<AttributeParseResult> ClassAttributes<TOption1, TOption2>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null)
         {
             return ClassAttributes(instance, configure, typeof(TOption1), typeof(TOption2));
         }
 
-        public static AttributeParser ClassAttributes<TOption1, TOption2, TOption3>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null)
+        public static IParser<AttributeParseResult> ClassAttributes<TOption1, TOption2, TOption3>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null)
         {
             return ClassAttributes(instance, configure, typeof(TOption1), typeof(TOption2), typeof(TOption3));
         }
 
-        public static AttributeParser ClassAttributes<TOption1, TOption2, TOption3, TOption4>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null)
+        public static IParser<AttributeParseResult> ClassAttributes<TOption1, TOption2, TOption3, TOption4>(this Parsers.SetupHelper instance, Action<AttributeConfiguration>? configure = null)
         {
             return ClassAttributes(instance, configure, typeof(TOption1), typeof(TOption2), typeof(TOption3), typeof(TOption4));
         }

@@ -9,7 +9,7 @@ namespace Colipars.Attribute.Class
     public sealed class AttributeParseResult : IParseResult
     {
         private readonly object? _customObject = null;
-        private readonly ErrorHandler _defaultErrorHandler;
+        internal readonly ErrorHandler _defaultErrorHandler;
 
         public IVerb? Verb { get; }
         public IEnumerable<IError> Errors { get; }
@@ -301,6 +301,147 @@ namespace Colipars.Attribute.Class
         public static AttributeParseResult CreateSuccessResult(IVerb verb, ErrorHandler errorHandler, object customObject)
         {
             return new AttributeParseResult(verb, errorHandler, customObject);
+        }
+    }
+
+    public sealed class SingleAttributeParseResult<TOption> : IParseResult where TOption : class
+    {
+        private readonly TOption? _customObject = null;
+        private readonly ErrorHandler _defaultErrorHandler;
+
+        public IVerb? Verb { get; }
+        public IEnumerable<IError> Errors { get; }
+        public bool HelpRequested { get; private set; } = false;
+
+        private SingleAttributeParseResult(IVerb verb, ErrorHandler defaultErrorHandler, TOption customObject)
+        {
+            Verb = verb ?? throw new ArgumentNullException(nameof(verb));
+            Errors = new IError[0];
+            _defaultErrorHandler = defaultErrorHandler ?? throw new ArgumentNullException(nameof(defaultErrorHandler));
+            _customObject = customObject;
+        }
+
+        private SingleAttributeParseResult(IVerb? verb, ErrorHandler defaultErrorHandler, IEnumerable<IError> errors)
+        {
+            Verb = verb;
+            _defaultErrorHandler = defaultErrorHandler ?? throw new ArgumentNullException(nameof(defaultErrorHandler));
+            Errors = errors;
+        }
+
+        /// <summary>
+        /// Maps the options object to an exit code.
+        /// </summary>
+        /// <typeparam name="TOption"></typeparam>
+        /// <param name="optionHandler"></param>
+        /// <returns></returns>
+        public int Map(Func<TOption, int> optionHandler)
+        {
+            return Map(optionHandler, _defaultErrorHandler);
+        }
+
+        public int Map(Func<TOption, int> optionHandler, ErrorHandler errorHandler)
+        {
+            if (optionHandler == null) throw new ArgumentNullException(nameof(optionHandler));
+            if (errorHandler == null) throw new ArgumentNullException(nameof(errorHandler));
+
+            return MapInternal(() =>
+            {
+                return optionHandler(_customObject!);
+            }, errorHandler);
+        }
+
+        private int MapInternal(Func<int> handler, ErrorHandler errorHandler)
+        {
+            if (HelpRequested)
+                return 0;
+
+            if (Errors.Any())
+                return errorHandler(Errors);
+
+            if (_customObject == null)
+                throw new InvalidOperationException("The parse result is no object, but neither help was requested nor was there an error.");
+
+            return handler();
+        }
+
+        /// <summary>
+        /// Maps the options object to an exit code. If an exception happens in the <paramref name="optionHandler"/>, an error handler takes care of it and this function returns false.
+        /// </summary>
+        /// <typeparam name="TOption"></typeparam>
+        /// <param name="optionHandler"></param>
+        /// <param name="exitCode"></param>
+        /// <returns>True if no exception was thrown, false otherwise.</returns>
+        public bool TryMap(Func<TOption, int> optionHandler, out int exitCode)
+        {
+            return TryMap(optionHandler, _defaultErrorHandler, out exitCode);
+        }
+
+        /// <summary>
+        /// Maps the options object to an exit code. If an exception happens in the <paramref name="optionHandler"/>, the given <paramref name="errorsHandler"/> gets called and this function returns false.
+        /// </summary>
+        /// <typeparam name="TOption"></typeparam>
+        /// <param name="optionHandler"></param>
+        /// <param name="errorsHandler">Gets called if any error happens.</param>
+        /// <param name="exitCode"></param>
+        /// <returns>True if no exception was thrown, false otherwise.</returns>
+        public bool TryMap(Func<TOption, int> optionHandler, ErrorHandler errorHandler, out int exitCode)
+        {
+            if (optionHandler == null) throw new ArgumentNullException(nameof(optionHandler));
+            if (errorHandler == null) throw new ArgumentNullException(nameof(errorHandler));
+
+            try
+            {
+                exitCode = Map(optionHandler, errorHandler);
+                return true;
+            }
+            catch (Exception exc)
+            {
+                exitCode = errorHandler(new[] { new UnexpectedExceptionError(exc) });
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// The instance of the type that was successfully parsed.
+        /// If the help was requested or the parsing was unsuccessful because of an error, an <see cref="InvalidOperationException"/> gets thrown.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public TOption GetCustomObject()
+        {
+            if (HelpRequested)
+                throw new InvalidOperationException("Can't request the verb object, user requested showing the help.");
+
+            if (_customObject == null)
+                if (Errors.Any())
+                    throw new InvalidOperationException($"There are errors which prevented a successful parse; {string.Join(",", Errors.Select(e => e.Message))}");
+                else
+                    throw new LogicException("The parse didn't create errrors but no target object is available.");
+
+            return _customObject;
+        }
+
+        public static SingleAttributeParseResult<TOption> CreateHelpRequest(IVerb? verb, ErrorHandler errorHandler)
+        {
+            return new SingleAttributeParseResult<TOption>(verb, errorHandler, []) { HelpRequested = true };
+        }
+
+        public static SingleAttributeParseResult<TOption> CreateErrorResult(IVerb? verb, ErrorHandler errorHandler, IEnumerable<IError> errors)
+        {
+            return new SingleAttributeParseResult<TOption>(verb, errorHandler, errors);
+        }
+
+        public static SingleAttributeParseResult<TOption> CreateSuccessResult(IVerb verb, ErrorHandler errorHandler, TOption customObject)
+        {
+            return new SingleAttributeParseResult<TOption>(verb, errorHandler, customObject);
+        }
+
+        internal static SingleAttributeParseResult<TOption> FromAttributeParseResult(AttributeParseResult result)
+        {
+            if (result.Errors.Any())
+                return new SingleAttributeParseResult<TOption>(result.Verb, result._defaultErrorHandler, result.Errors);
+            if (result.HelpRequested)
+                return new SingleAttributeParseResult<TOption>(result.Verb, result._defaultErrorHandler, []) { HelpRequested = true };
+            return new SingleAttributeParseResult<TOption>(result.Verb!, result._defaultErrorHandler, result.GetCustomObject<TOption>());
         }
     }
 }

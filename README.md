@@ -75,7 +75,7 @@ var exitCode = Parsers.Setup.ClassAttributes<Command>().Parse(args).Map(
 ```
 
 ```cs
-var command = Parsers.Setup.ClassAttributes<Command>().Parse(args).GetCustomObject<Command>();
+var command = Parsers.Setup.ClassAttributes<Command>().Parse(args).GetCustomObject();
 ```
 
 Help can be shown by using the -h flag or from code, this includes the description of the attributes.

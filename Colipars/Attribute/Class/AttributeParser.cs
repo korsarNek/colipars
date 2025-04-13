@@ -91,5 +91,55 @@ namespace Colipars.Attribute.Class
         {
             return Parse(args);
         }
+
+        IParseResult IParser.ShowHelp(IVerb verb)
+        {
+            return ShowHelp(verb);
+        }
+
+        IParseResult IParser.ShowHelp()
+        {
+            return ShowHelp();
+        }
+    }
+
+    public class SingleOptionAttributeParser<TOption> : IParser<SingleAttributeParseResult<TOption>> where TOption : class
+    {
+        private AttributeParser _attributeParser;
+
+        public SingleOptionAttributeParser(AttributeParser attributeParser)
+        {
+            _attributeParser = attributeParser;
+        }
+
+        public SingleAttributeParseResult<TOption> Parse(IEnumerable<string> args)
+        {
+            return SingleAttributeParseResult<TOption>.FromAttributeParseResult(_attributeParser.Parse(args));
+        }
+
+        public SingleAttributeParseResult<TOption> ShowHelp(IVerb verb)
+        {
+            return SingleAttributeParseResult<TOption>.FromAttributeParseResult(_attributeParser.ShowHelp(verb));
+        }
+
+        public SingleAttributeParseResult<TOption> ShowHelp()
+        {
+            return SingleAttributeParseResult<TOption>.FromAttributeParseResult(_attributeParser.ShowHelp());
+        }
+
+        IParseResult IParser.Parse(IEnumerable<string> args)
+        {
+            return Parse(args);
+        }
+
+        IParseResult IParser.ShowHelp(IVerb verb)
+        {
+            return ShowHelp(verb);
+        }
+
+        IParseResult IParser.ShowHelp()
+        {
+            return ShowHelp();
+        }
     }
 }
