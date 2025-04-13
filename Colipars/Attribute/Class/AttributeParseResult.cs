@@ -281,7 +281,7 @@ namespace Colipars.Attribute.Class
 
             if (_customObject == null)
                 if (Errors.Any())
-                    throw new InvalidOperationException("There are errors which prevented a successful parse.");
+                    throw new InvalidOperationException($"There are errors which prevented a successful parse; {string.Join(",", Errors.Select(e => e.Message))}");
                 else
                     throw new LogicException("The parse didn't create errrors but no target object is available.");
 
