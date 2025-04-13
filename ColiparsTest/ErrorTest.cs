@@ -17,7 +17,7 @@ namespace Colipars.Test
         [TestMethod]
         public void MissingVerbErrorIfNoneIsProvided()
         {
-            var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>().Parse(new string[0]).Errors;
+            var errors = Cli.Setup.ClassAttributes<RequiredOptionCommand>().Parse(new string[0]).Errors;
 
             Assert.AreEqual(1, errors.Count());
             Assert.IsInstanceOfType(errors.First(), typeof(VerbIsMissingError));
@@ -29,7 +29,7 @@ namespace Colipars.Test
             Mock<IHelpPresenter> mock = new Mock<IHelpPresenter>();
             mock.Setup(a => a.Present());
 
-            var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => {
+            var errors = Cli.Setup.ClassAttributes<RequiredOptionCommand>((c) => {
                 c.ShowHelpOnMissingVerb = true;
                 ((ServiceProvider)c.Services).Register(mock.Object);
             }).Parse(new string[0]).Errors;
@@ -41,7 +41,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ErrorIfRequiredOptionIsMissing()
         {
-            var errors = Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => c.UseAsDefault<RequiredOptionCommand>()).Parse("BoolValue true".Split()).Errors;
+            var errors = Cli.Setup.ClassAttributes<RequiredOptionCommand>((c) => c.UseAsDefault<RequiredOptionCommand>()).Parse("BoolValue true".Split()).Errors;
 
             Assert.AreEqual(1, errors.Count());
             Assert.IsInstanceOfType(errors.First(), typeof(RequiredParameterMissingError));
@@ -50,7 +50,7 @@ namespace Colipars.Test
         [TestMethod]
         public void LessThanMinimumCountError()
         {
-            var errors = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 20".Split()).Errors;
+            var errors = Cli.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 20".Split()).Errors;
 
             Assert.AreEqual(errors.Count(), 1);
             Assert.IsInstanceOfType(errors.First(), typeof(NotEnoughElementsError));
@@ -60,7 +60,7 @@ namespace Colipars.Test
         public void DontMapOnError()
         {
             //MinimumCount is 3
-            Parsers.Setup.ClassAttributes<ListCommand>().Parse("ListCommand -n 10".Split()).Map((ListCommand c) => { Assert.Fail("Called map even though there is an error"); return 1; });
+            Cli.Setup.ClassAttributes<ListCommand>().Parse("ListCommand -n 10".Split()).Map((ListCommand c) => { Assert.Fail("Called map even though there is an error"); return 1; });
         }
 
         [TestMethod]
@@ -69,7 +69,7 @@ namespace Colipars.Test
             Mock<ErrorHandler> mock = new Mock<ErrorHandler>();
             mock.Setup(a => a(It.Is<IEnumerable<IError>>((errors) => errors.Count() == 1 && errors.First().GetType() == typeof(RequiredParameterMissingError)))).Returns(1);
 
-            Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) =>
+            Cli.Setup.ClassAttributes<RequiredOptionCommand>((c) =>
             {
                 c.UseAsDefault<RequiredOptionCommand>();
                 ((ServiceProvider)c.Services).Register(mock.Object);
@@ -81,7 +81,7 @@ namespace Colipars.Test
         [TestMethod]
         public void TryMapWithoutError()
         {
-            Parsers.Setup.ClassAttributes<RequiredOptionCommand>().Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => 12, out int exitCode);
+            Cli.Setup.ClassAttributes<RequiredOptionCommand>().Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => 12, out int exitCode);
 
             Assert.AreEqual(12, exitCode);
         }
@@ -92,7 +92,7 @@ namespace Colipars.Test
             Mock<ErrorHandler> mock = new Mock<ErrorHandler>();
             mock.Setup(a => a(It.IsAny<IError[]>())).Returns(1);
 
-            Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) => ((ServiceProvider)c.Services).Register<ErrorHandler>(mock.Object)).Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => throw new Exception(), out int exitCode);
+            Cli.Setup.ClassAttributes<RequiredOptionCommand>((c) => ((ServiceProvider)c.Services).Register<ErrorHandler>(mock.Object)).Parse("required --BoolValue true --IntValue 2".Split()).TryMap((RequiredOptionCommand x) => throw new Exception(), out int exitCode);
 
             Assert.AreEqual(1, exitCode);
             mock.VerifyAll();

@@ -19,7 +19,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseNamed()
         {
-            var exitCode = Parsers.Setup.ClassAttributes<Command>().Parse("test --value test -n 0.42".Split()).Map((Command command) => command.Execute(), (errors) => 1);
+            var exitCode = Cli.Setup.ClassAttributes<Command>().Parse("test --value test -n 0.42".Split()).Map((Command command) => command.Execute(), (errors) => 1);
 
             Assert.AreEqual(40, exitCode);
         }
@@ -27,7 +27,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseNamedEqualSign()
         {
-            var command = Parsers.Setup.ClassAttributes<Command>().Parse("test --value=test -n=0.42".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<Command>().Parse("test --value=test -n=0.42".Split()).GetCustomObject();
 
             Assert.AreEqual("test", command.Value);
             Assert.AreEqual(0.42, command.Number);
@@ -36,7 +36,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseNamedNestedEqualSign()
         {
-            var command = Parsers.Setup.ClassAttributes<Command>().Parse("test --value=test=aValue -n=0.42".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<Command>().Parse("test --value=test=aValue -n=0.42".Split()).GetCustomObject();
 
             Assert.AreEqual("test=aValue", command.Value);
             Assert.AreEqual(0.42, command.Number);
@@ -47,7 +47,7 @@ namespace Colipars.Test
         {
             var text = new StringBuilder();
 
-            Parsers.Setup.ClassAttributes<Command>((c) => ((ServiceProvider)c.Services).Register<IHelpPresenter>(new HelpPresenter(text))).ShowHelp();
+            Cli.Setup.ClassAttributes<Command>((c) => ((ServiceProvider)c.Services).Register<IHelpPresenter>(new HelpPresenter(text))).ShowHelp();
 
             Assert.AreEqual("Showed general help.", text.ToString());
         }
@@ -57,7 +57,7 @@ namespace Colipars.Test
         {
             var text = new StringBuilder();
 
-            Parsers.Setup.ClassAttributes<Command>((c) => ((ServiceProvider)c.Services).Register<IHelpPresenter>(new HelpPresenter(text))).ShowHelp(Attribute.Class.AttributeConfiguration.GetVerbFromType(typeof(Command)));
+            Cli.Setup.ClassAttributes<Command>((c) => ((ServiceProvider)c.Services).Register<IHelpPresenter>(new HelpPresenter(text))).ShowHelp(Attribute.Class.AttributeConfiguration.GetVerbFromType(typeof(Command)));
 
             Assert.AreEqual(@"Showed help for ""test""", text.ToString());
         }
@@ -65,7 +65,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParsePositional()
         {
-            var command = Parsers.Setup.ClassAttributes<SetPositionCommand>().Parse("setPosition 0.4 -220.4".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<SetPositionCommand>().Parse("setPosition 0.4 -220.4".Split()).GetCustomObject();
 
             Assert.AreEqual(0.4f, command.X);
             Assert.AreEqual(-220.4f, command.Y);
@@ -74,7 +74,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseMixed()
         {
-            var command = Parsers.Setup.ClassAttributes<PositionalAndNamedCommand>((c) => c.UseAsDefault<PositionalAndNamedCommand>()).Parse("-f true false".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<PositionalAndNamedCommand>((c) => c.UseAsDefault<PositionalAndNamedCommand>()).Parse("-f true false".Split()).GetCustomObject();
 
             Assert.AreEqual(true, command.IsFlagged);
             Assert.AreEqual(false, command.AnotherFlag);
@@ -83,7 +83,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseMixedEqualSign()
         {
-            var command = Parsers.Setup.ClassAttributes<PositionalAndNamedCommand>((c) => c.UseAsDefault<PositionalAndNamedCommand>()).Parse("-f=true false".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<PositionalAndNamedCommand>((c) => c.UseAsDefault<PositionalAndNamedCommand>()).Parse("-f=true false".Split()).GetCustomObject();
 
             Assert.AreEqual(true, command.IsFlagged);
             Assert.AreEqual(false, command.AnotherFlag);
@@ -92,7 +92,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseFlag()
         {
-            var command = Parsers.Setup.ClassAttributes<FlagCommand>((c) => c.UseAsDefault<FlagCommand>()).Parse("-v".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<FlagCommand>((c) => c.UseAsDefault<FlagCommand>()).Parse("-v".Split()).GetCustomObject();
 
             Assert.AreEqual(true, command.Verbose);
         }
@@ -100,7 +100,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseCustomFlag()
         {
-            var command = Parsers.Setup.ClassAttributes<VerbosityCommand>((c) => c.UseAsDefault<VerbosityCommand>()).Parse("-vv".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<VerbosityCommand>((c) => c.UseAsDefault<VerbosityCommand>()).Parse("-vv".Split()).GetCustomObject();
 
             Assert.AreEqual(VerbosityLevel.Extensive, command.Verbosity);
         }
@@ -108,7 +108,7 @@ namespace Colipars.Test
         [TestMethod]
         public void MultipleCommands()
         {
-            var verbObj = Parsers.Setup.ClassAttributes<FlagCommand, VerbosityCommand>().Parse("verbosity -vvv".Split()).GetCustomObject();
+            var verbObj = Cli.Setup.ClassAttributes<FlagCommand, VerbosityCommand>().Parse("verbosity -vvv".Split()).GetCustomObject();
 
             Assert.IsInstanceOfType(verbObj, typeof(VerbosityCommand));
             Assert.AreEqual(VerbosityLevel.Debug, ((VerbosityCommand)verbObj).Verbosity);
@@ -117,7 +117,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseNegativeNumber()
         {
-            var command = Parsers.Setup.ClassAttributes<Command>().Parse("test -n -4.0".Split()).GetCustomObject();
+            var command = Cli.Setup.ClassAttributes<Command>().Parse("test -n -4.0".Split()).GetCustomObject();
 
             Assert.AreEqual(command.Number, -4.0f);
         }
@@ -125,7 +125,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseListArgument()
         {
-            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 -20 4".Split());
+            var result = Cli.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 -20 4".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(3, listCommand.Numbers.Count);
@@ -135,7 +135,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseListArgumentMultipleTimes()
         {
-            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 -n -20 4".Split());
+            var result = Cli.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 -n -20 4".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(3, listCommand.Numbers.Count);
@@ -145,7 +145,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseListArgumentCommas()
         {
-            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n=10,-20,4".Split());
+            var result = Cli.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n=10,-20,4".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(3, listCommand.Numbers.Count);
@@ -155,7 +155,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseListArgumentMixed()
         {
-            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n=10,-20 -n 4".Split());
+            var result = Cli.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n=10,-20 -n 4".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(3, listCommand.Numbers.Count);
@@ -165,7 +165,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseListArgumentWithFlagParameterAfterwards()
         {
-            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 4 -4 4 -f".Split());
+            var result = Cli.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 4 -4 4 -f".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(3, listCommand.Numbers.Count);
@@ -177,7 +177,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseListArgumentWithCustomConverter()
         {
-            var result = Parsers.Setup.ClassAttributes<CustomListCommand>((c) => c.UseAsDefault<CustomListCommand>()).Parse("-n 10 20".Split());
+            var result = Cli.Setup.ClassAttributes<CustomListCommand>((c) => c.UseAsDefault<CustomListCommand>()).Parse("-n 10 20".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(2, listCommand.Numbers.Count);

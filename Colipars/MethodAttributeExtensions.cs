@@ -12,7 +12,7 @@ namespace Colipars
     public static class MethodAttributeExtensions
     {
 #pragma warning disable IDE0060 // Nicht verwendete Parameter entfernen
-        public static AttributeParser MethodAttributes(this Parsers.SetupHelper setup, Action<AttributeConfiguration>? configure = null, object? instance = null, params Type[] containerTypes)
+        public static AttributeParser MethodAttributes(this Cli.SetupHelper setup, Action<AttributeConfiguration>? configure = null, object? instance = null, params Type[] containerTypes)
 #pragma warning restore IDE0060 // Nicht verwendete Parameter entfernen
         {
             var serviceProvider = ServiceProvider.Default.Clone();
@@ -22,7 +22,7 @@ namespace Colipars
             serviceProvider.Register<AttributeConfiguration>(configuration);
 
             configure?.Invoke(configuration);
-            
+
             return new AttributeParser(
                 serviceProvider.GetService<AttributeConfiguration>(),
                 serviceProvider.GetService<IParameterFormatter>(),
@@ -31,7 +31,7 @@ namespace Colipars
             );
         }
 
-        public static AttributeParser MethodAttributes<TContainer>(this Parsers.SetupHelper setup, Action<AttributeConfiguration>? configure = null, TContainer? instance = null) where TContainer : class
+        public static AttributeParser MethodAttributes<TContainer>(this Cli.SetupHelper setup, Action<AttributeConfiguration>? configure = null, TContainer? instance = null) where TContainer : class
         {
             return MethodAttributes(setup, configure, instance, typeof(TContainer));
         }

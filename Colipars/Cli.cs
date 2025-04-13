@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Colipars
 {
-    public static class Parsers
+    public static class Cli
     {
         /// <summary>
         /// Extension point for different parser setups.

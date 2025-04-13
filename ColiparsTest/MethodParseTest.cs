@@ -12,13 +12,13 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseNumbers()
         {
-            Assert.AreEqual(0, Parsers.Setup.MethodAttributes<Container>((c) => c.UseAsDefault<Container>(nameof(Container.NumbersTest))).Parse("--numbers 10 20 -30".Split()).Execute());
+            Assert.AreEqual(0, Cli.Setup.MethodAttributes<Container>((c) => c.UseAsDefault<Container>(nameof(Container.NumbersTest))).Parse("--numbers 10 20 -30".Split()).Execute());
         }
 
         [TestMethod]
         public void ExceptionOnTryExecute()
         {
-            var success = Parsers.Setup.MethodAttributes<Container>().Parse("exception".Split()).TryExecute(out int exitCode);
+            var success = Cli.Setup.MethodAttributes<Container>().Parse("exception".Split()).TryExecute(out int exitCode);
             Assert.IsFalse(success);
             Assert.AreEqual(1, exitCode);
         }
@@ -26,7 +26,7 @@ namespace Colipars.Test
         [TestMethod]
         public void ErrorOnMissingVerb()
         {
-            var errors = Parsers.Setup.MethodAttributes<Container>().Parse("".Split()).Errors;
+            var errors = Cli.Setup.MethodAttributes<Container>().Parse("".Split()).Errors;
             Assert.AreEqual(1, errors.Count());
             Assert.IsInstanceOfType(errors.First(), typeof(VerbIsMissingError));
         }
@@ -34,26 +34,26 @@ namespace Colipars.Test
         [TestMethod]
         public void ParseNamedOptionAfterNamedCollectionOption()
         {
-            Assert.AreEqual(0, Parsers.Setup.MethodAttributes<Container>().Parse("NamedAfterNamedCollection --files testfile1.png testfile2.png --output outputfile.png".Split()).Execute());
+            Assert.AreEqual(0, Cli.Setup.MethodAttributes<Container>().Parse("NamedAfterNamedCollection --files testfile1.png testfile2.png --output outputfile.png".Split()).Execute());
         }
 
         [TestMethod]
         public void ParsePositionalOptionAfterNamedCollectionOption()
         {
             //The case of a positionalOption after a NamedCollection does not work, at least in the provided string collection, se we have to specify the positional one before.
-            Assert.AreEqual(0, Parsers.Setup.MethodAttributes<Container>().Parse("PositionalAfterNamedCollection outputfile.png --files testfile1.png testfile2.png".Split()).Execute());
+            Assert.AreEqual(0, Cli.Setup.MethodAttributes<Container>().Parse("PositionalAfterNamedCollection outputfile.png --files testfile1.png testfile2.png".Split()).Execute());
         }
 
         [TestMethod]
         public void ExecuteAVerbWithDefaultParameters()
         {
-            Assert.AreEqual(0, Parsers.Setup.MethodAttributes<Container>().Parse("DefaultParameter --output outputfile.png".Split()).Execute());
+            Assert.AreEqual(0, Cli.Setup.MethodAttributes<Container>().Parse("DefaultParameter --output outputfile.png".Split()).Execute());
         }
 
         [TestMethod]
         public void StaticMethodWithVerb()
         {
-            Assert.AreEqual(2, Parsers.Setup.MethodAttributes<Container>().Parse("StaticMethod outputfile.png".Split()).Execute());
+            Assert.AreEqual(2, Cli.Setup.MethodAttributes<Container>().Parse("StaticMethod outputfile.png".Split()).Execute());
         }
 
         [TestMethod]
@@ -63,7 +63,7 @@ namespace Colipars.Test
             {
                 Field = 10
             };
-            Assert.AreEqual(2, Parsers.Setup.MethodAttributes(instance: container).Parse("Instance".Split()).Execute());
+            Assert.AreEqual(2, Cli.Setup.MethodAttributes(instance: container).Parse("Instance".Split()).Execute());
         }
 
         class Container
