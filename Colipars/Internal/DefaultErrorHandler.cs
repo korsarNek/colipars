@@ -10,6 +10,7 @@ namespace Colipars.Internal
         private readonly IErrorPresenter _errorPresenter;
         private readonly IHelpPresenter _helpPresenter;
 
+        //TODO: get rid of custom error codes, other than 1.
         private const int EXIT_CODE_VERB_ERROR = 100;
         private const int EXIT_CODE_ARGUMENT_ERROR = 101;
         private const int EXIT_CODE_OTHER = 1;
@@ -31,9 +32,15 @@ namespace Colipars.Internal
                     exitCode = EXIT_CODE_VERB_ERROR;
                     break;
                 }
-                else if (error is RequiredParameterMissingError || error is OptionForArgumentNotFoundError)
+                else if (error is RequiredParameterMissingError missingError)
                 {
-                    _helpPresenter.Present(((IVerbError)error).Verb);
+                    _helpPresenter.Present(missingError.Verb);
+                    exitCode = EXIT_CODE_ARGUMENT_ERROR;
+                    break;
+                }
+                else if (error is OptionForArgumentNotFoundError argumentError)
+                {
+                    _helpPresenter.Present(argumentError.Verb);
                     exitCode = EXIT_CODE_ARGUMENT_ERROR;
                     break;
                 }

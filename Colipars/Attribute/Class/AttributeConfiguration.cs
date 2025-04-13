@@ -12,6 +12,7 @@ namespace Colipars.Attribute.Class
     {
         private readonly Dictionary<IVerb, VerbData>  _verbsData = new Dictionary<IVerb, VerbData>();
         private readonly IServiceProvider _serviceProvider;
+        internal IVerb? _defaultVerb;
 
         internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes)
         {
@@ -42,7 +43,7 @@ namespace Colipars.Attribute.Class
 
         public void UseAsDefault<T>()
         {
-            DefaultVerb = GetVerbFromType(typeof(T));
+            _defaultVerb = GetVerbFromType(typeof(T));
         }
 
         public override IEnumerable<IOption> GetOptions(IVerb verb) => _verbsData[verb].OptionProperties.Select((x) => x.Option);

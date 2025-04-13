@@ -66,6 +66,38 @@ namespace Colipars.Test
             Assert.AreEqual(2, Cli.Setup.MethodAttributes(instance: container).Parse("Instance".Split()).Execute());
         }
 
+        [TestMethod]
+        public void StaticDefaultWithoutVerb()
+        {
+            Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.WithoutVerb))).Parse("static".Split()).Execute();
+        }
+
+        [TestMethod]
+        public void BooleanTrueResult()
+        {
+            Assert.AreEqual(0, Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Boolean))).Parse("--result true".Split()).Execute());
+            Assert.AreEqual(1, Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Boolean))).Parse("--result false".Split()).Execute());
+            Assert.AreEqual(1, Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Boolean))).Parse([]).Execute());
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsync()
+        {
+            Assert.AreEqual(0, await Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Async))).Parse([]).ExecuteAsync());
+        }
+
+        [TestMethod]
+        public void DefaultWithoutArgs()
+        {
+            Assert.AreEqual(0, Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Empty))).Parse([]).Execute());
+        }
+
+        [TestMethod]
+        public void NamedBooleanUsedAsFlag()
+        {
+            Assert.AreEqual(101, Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Boolean))).Parse("--result".Split()).Execute());
+        }
+
         class Container
         {
             public int Field = 0;
@@ -116,6 +148,27 @@ namespace Colipars.Test
             {
                 Assert.AreEqual(10, Field);
                 return 2;
+            }
+
+            public static void WithoutVerb([PositionalOption(0)] string output)
+            {
+                Assert.AreEqual("static", output);
+            }
+
+            [Verb("Async")]
+            public static Task<bool> Async()
+            {
+                return Task.FromResult(true);
+            }
+
+            public static bool Boolean([NamedOption("result")] bool result)
+            {
+                return result;
+            }
+
+            public static int Empty()
+            {
+                return 0;
             }
         }
     }

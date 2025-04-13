@@ -18,7 +18,7 @@ namespace Colipars.Attribute.Class
         public AttributeParser(AttributeConfiguration configuration, IParameterFormatter parameterFormatter, IValueConverter valueConverter, IHelpPresenter helpPresenter)
         {
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _attributeHandler = new AttributeHandler(configuration, parameterFormatter, (option, value) =>
+            _attributeHandler = new AttributeHandler(parameterFormatter, (option, value) =>
             {
                 var optionProperty = Configuration.GetOptionProperty(option);
                 return valueConverter.ConvertFromString(option, optionProperty.PropertyInfo, AttributeHandler.GetValueType(optionProperty.Option, optionProperty.PropertyInfo.PropertyType), value);
@@ -52,28 +52,41 @@ namespace Colipars.Attribute.Class
 
         public AttributeParseResult Parse(IEnumerable<string> args)
         {
+            //TODO: add test for this case with explanation why.
+            args = args.Where((x) => !string.IsNullOrEmpty(x));
 
-            if (!_attributeHandler.TryParseSelectedVerb(Configuration.Verbs, ref args, out var error, out var verb, out var requestedHelp))
+            var firstParam = args.FirstOrDefault();
+            IVerb verb;
+            if (firstParam == null)
             {
-                if (requestedHelp)
-                    if (verb == null)
-                        return ShowHelp();
-                    else
-                        return ShowHelp(verb);
-                else if (error == null)
-                    throw new LogicException("The attribute handled didn't parse the result and no help was requested, but no error was generated.");
+                if (Configuration._defaultVerb != null)
+                    verb = Configuration._defaultVerb;
+                else if (Configuration.ShowHelpOnMissingVerb)
+                    return ShowHelp();
                 else
-                    return AttributeParseResult.CreateErrorResult(verb, Configuration.Services.GetService<ErrorHandler>(), new[] { error });
+                    return AttributeParseResult.CreateErrorResult(null, Configuration.Services.GetService<ErrorHandler>(), [new VerbIsMissingError()]);
             }
-
-            IVerb safeVerb = verb ?? throw new LogicException("The attribute handler parsed the verb, but didn't return it.");
-
-            if (!_attributeHandler.TryProcessArguments(safeVerb, Configuration.GetOptions(safeVerb), args, out var optionValues, out var errors))
+            else if (Configuration.HelpArguments.Contains(firstParam))
+                return ShowHelp();
+            else
             {
-                return AttributeParseResult.CreateErrorResult(verb, Configuration.Services.GetService<ErrorHandler>(), errors);
+                verb = Configuration.Verbs.FirstOrDefault((x) => x.Name == firstParam);
+                if (verb == null)
+                    if (Configuration._defaultVerb != null)
+                        verb = Configuration._defaultVerb;
+                    else
+                        return AttributeParseResult.CreateErrorResult(null, Configuration.Services.GetService<ErrorHandler>(), [new UnknownVerbError(firstParam)]);
+                else
+                    args = args.Skip(1);
             }
 
-            var verbData = Configuration.GetVerbData(safeVerb);
+            if (args.Any((x) => Configuration.HelpArguments.Contains(x)))
+                return ShowHelp(verb);
+
+            if (!_attributeHandler.TryProcessArguments(verb, Configuration.GetOptions(verb), args, out var optionValues, out var errors))
+                return AttributeParseResult.CreateErrorResult(verb, Configuration.Services.GetService<ErrorHandler>(), errors);
+
+            var verbData = Configuration.GetVerbData(verb);
 
             foreach (var optionProperty in verbData.OptionProperties)
             {
@@ -84,7 +97,7 @@ namespace Colipars.Attribute.Class
                 optionProperty.SetValue(verbData.Instance, providedOption.Value);
             }
 
-            return AttributeParseResult.CreateSuccessResult(safeVerb, Configuration.Services.GetService<ErrorHandler>(), verbData.Instance);
+            return AttributeParseResult.CreateSuccessResult(verb, Configuration.Services.GetService<ErrorHandler>(), verbData.Instance);
         }
 
         IParseResult IParser.Parse(IEnumerable<string> args)

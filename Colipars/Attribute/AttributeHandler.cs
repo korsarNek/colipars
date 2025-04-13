@@ -15,23 +15,17 @@ namespace Colipars.Attribute
         private readonly Func<IOption, string, object> _valueConverter;
         private readonly Func<IOption, Type> _memberTypeFromOption;
         private readonly IParameterFormatter _parameterFormatter;
-        private readonly Configuration _configuration;
 
-        public AttributeHandler(Configuration configuration, IParameterFormatter parameterFormatter, Func<IOption, string, object> valueConverter, Func<IOption, Type> memberTypeFromOption)
+        public AttributeHandler(IParameterFormatter parameterFormatter, Func<IOption, string, object> valueConverter, Func<IOption, Type> memberTypeFromOption)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             //TODO: instead of func, provide an interface for the conversion.
-            _valueConverter = valueConverter ?? throw new ArgumentNullException(nameof(valueConverter));
-            _memberTypeFromOption = memberTypeFromOption ?? throw new ArgumentNullException(nameof(memberTypeFromOption));
-            _parameterFormatter = parameterFormatter ?? throw new ArgumentNullException(nameof(parameterFormatter));
+            _valueConverter = valueConverter;
+            _memberTypeFromOption = memberTypeFromOption;
+            _parameterFormatter = parameterFormatter;
         }
 
         public bool TryProcessArguments(IVerb verb, IEnumerable<IOption> options, IEnumerable<string> arguments, out IEnumerable<OptionAndValue> optionValues, out IEnumerable<IError> errors)
         {
-            if (verb == null) throw new ArgumentNullException(nameof(verb));
-            if (options == null) throw new ArgumentNullException(nameof(options));
-            if (arguments == null) throw new ArgumentNullException(nameof(arguments));
-
             var positionalOptions = options.OfType<PositionalOptionAttribute>().ToArray();
             var flagOptions = options.OfType<FlagOptionAttribute>().ToArray();
             var namedCollectionOptions = options.OfType<NamedCollectionOptionAttribute>().ToArray();
@@ -39,7 +33,7 @@ namespace Colipars.Attribute
 
             int positionalArgumentCount = 0;
             var argsArray = arguments.ToArray();
-            List<OptionAndValue> providedOptions = new List<OptionAndValue>();
+            List<OptionAndValue> providedOptions = [];
             for (int i = 0; i < argsArray.Length; i++)
             {
                 var argument = argsArray[i];
@@ -50,8 +44,8 @@ namespace Colipars.Attribute
                 else if (HandlePositionOption(argument, providedOptions, positionalOptions, ref positionalArgumentCount)) { continue; }
                 else if (HandleNamedCollectionOption(argsArray, ref i, parameterAndValue, providedOptions, namedCollectionOptions, flagOptions, namedOptions)) { continue; }
                 {
-                    optionValues = new OptionAndValue[0];
-                    errors = new IError[] { new OptionForArgumentNotFoundError(verb, argument, positionalArgumentCount) };
+                    optionValues = [];
+                    errors = [new OptionForArgumentNotFoundError(verb, argument, positionalArgumentCount)];
                     return false;
                 }
             }
@@ -75,60 +69,7 @@ namespace Colipars.Attribute
             }
 
             optionValues = providedOptions;
-            errors = new IError[0];
-            return true;
-        }
-        
-        //TODO: get rid of LogicExceptions in the code that call this function by returning different types that represent the different possible value combinations.
-        public bool TryParseSelectedVerb(IEnumerable<IVerb> verbs, ref IEnumerable<string> args, out IError? error, out IVerb? selectedVerb, out bool requestedHelp)
-        {
-            requestedHelp = false;
-            error = null;
-
-            //TODO: add test for this case with explanation why.
-            args = args.Where((x) => !String.IsNullOrEmpty(x));
-
-            var firstParam = args.FirstOrDefault();
-            if (firstParam == null)
-            {
-                selectedVerb = null;
-                error = new VerbIsMissingError();
-                if (_configuration.ShowHelpOnMissingVerb)
-                {
-                    requestedHelp = true;
-                }
-                return false;
-            }
-
-            if (_configuration.HelpArguments.Contains(firstParam))
-            {
-                selectedVerb = null;
-                requestedHelp = true;
-                return false;
-            }
-
-            selectedVerb = verbs.FirstOrDefault((x) => x.Name == firstParam);
-            if (selectedVerb == null)
-            {
-                if (_configuration.DefaultVerb != null)
-                    selectedVerb = _configuration.DefaultVerb;
-                else
-                {
-                    error = new UnknownVerbError(firstParam);
-                    return false;
-                }
-            }
-            else
-            {
-                args = args.Skip(1);
-            }
-
-            if (args.Any((x) => _configuration.HelpArguments.Contains(x)))
-            {
-                requestedHelp = true;
-                return false;
-            }
-            
+            errors = [];
             return true;
         }
 
@@ -184,7 +125,7 @@ namespace Colipars.Attribute
 
                         return true;
                     }
-                    else
+                    else if (arguments.Length > argumentCounter + 1)
                     {
                         argumentCounter++;
                         providedOptions.Add(new OptionAndValue(namedOption, _valueConverter(namedOption, arguments[argumentCounter])));

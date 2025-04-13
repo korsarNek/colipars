@@ -10,82 +10,47 @@ namespace Colipars
         string Message { get; }
     }
 
-    public interface IVerbError : IError
-    {
-        IVerb Verb { get; }
-    }
-
     public class VerbIsMissingError : IError
     {
         public string Message => "No verb provided.";
     }
 
-    public class UnknownVerbError : IError
+    public class UnknownVerbError(string verb) : IError
     {
-        public string ProvidedVerb;
-
-        public UnknownVerbError(string verb)
-        {
-            ProvidedVerb = verb ?? throw new ArgumentNullException(nameof(verb));
-        }
+        public string ProvidedVerb => verb;
 
         public string Message => $"Unknown verb \"{ProvidedVerb}\"";
     }
 
-    public class UnexpectedExceptionError : IError
+    public class UnexpectedExceptionError(Exception exception) : IError
     {
-        public Exception Exception { get; }
-
-        public UnexpectedExceptionError(Exception exception)
-        {
-            Exception = exception ?? throw new ArgumentNullException(nameof(exception));
-        }
+        public Exception Exception => exception;
 
         public string Message => "Unexpected Exception: " + Exception.Message;
     }
 
-    public class RequiredParameterMissingError : IVerbError
+    public class RequiredParameterMissingError(IVerb verb, string parameterName) : IError
     {
-        public IVerb Verb { get; }
-        public string ParameterName { get; }
-
-        public RequiredParameterMissingError(IVerb verb, string parameterName)
-        {
-            Verb = verb ?? throw new ArgumentNullException(nameof(verb));
-            ParameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
-        }
+        public IVerb Verb => verb;
+        public string ParameterName => parameterName;
 
         public string Message => $"The required parameter \"{ParameterName}\" is missing.";
     }
 
-    public class NotEnoughElementsError : IVerbError
+    public class NotEnoughElementsError(IVerb verb, string parameterName, int minimumCount) : IError
     {
-        public IVerb Verb { get; }
-        public string ParameterName { get; }
-        public int MinimumCount { get; }
-
-        public NotEnoughElementsError(IVerb verb, string parameterName, int minimumCount)
-        {
-            Verb = verb;
-            ParameterName = parameterName;
-            MinimumCount = minimumCount;
-        }
+        public IVerb Verb => verb;
+        public string ParameterName => parameterName;
+        public int MinimumCount => minimumCount;
 
         public string Message => $"The number of arguments for the parameter \"{ParameterName}\" is less than {MinimumCount}";
     }
 
-    public class OptionForArgumentNotFoundError : IVerbError
+    public class OptionForArgumentNotFoundError(IVerb verb, string argument, int argumentPosition) : IError
     {
-        public IVerb Verb { get; }
-        public string Argument { get; }
-        public int ArgumentPosition { get; }
-
-        public OptionForArgumentNotFoundError(IVerb verb, string argument, int argumentPosition)
-        {
-            Verb = verb ?? throw new ArgumentNullException(nameof(verb));
-            Argument = argument ?? throw new ArgumentNullException(nameof(argument));
-            ArgumentPosition = argumentPosition;
-        }
+        public IVerb Verb => verb;
+        public string Argument => argument;
+        public int ArgumentPosition => argumentPosition;
 
         public string Message => $"No option with the name \"{Argument}\" and no positional option at position {ArgumentPosition}.";
     }

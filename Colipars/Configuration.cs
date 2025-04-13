@@ -11,11 +11,9 @@ namespace Colipars
         /// <summary>
         /// Possible arguments to any verb that trigger the help.
         /// </summary>
-        public IEnumerable<string> HelpArguments { get; set; } = new[] { "h", "help" };
+        public IEnumerable<string> HelpArguments { get; set; } = ["h", "help"];
 
         public CultureInfo CultureInfo { get; set; } = CultureInfo.InvariantCulture;
-
-        public IVerb? DefaultVerb { get; set; }
 
         //TODO: make it easier to replace the services we use.
         public abstract IServiceProvider Services { get; }

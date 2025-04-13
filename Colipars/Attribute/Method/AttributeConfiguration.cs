@@ -11,38 +11,22 @@ namespace Colipars.Attribute.Method
 {
     public class AttributeConfiguration : Configuration
     {
-        private readonly Dictionary<IVerb, VerbData> _verbData = new Dictionary<IVerb, VerbData>();
+        private readonly Dictionary<IVerb, VerbData> _verbData = [];
         private readonly IServiceProvider _serviceProvider;
+        internal MethodInfo? _defaultMethod;
+        private object? _instance;
 
         internal AttributeConfiguration(IServiceProvider serviceProvider, IEnumerable<Type> optionTypes, object? instance = null)
         {
             _serviceProvider = serviceProvider;
+            _instance = instance;
             foreach (var type in optionTypes)
             {
                 var typeInfo = type.GetTypeInfo();
 
                 foreach (var methodVerbPair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).Select((x) => new KeyValuePair<MethodInfo, IVerb?>(x, GetVerbFromMethod(x))).Where((x) => x.Value != null))
                 {
-                    var verb = methodVerbPair.Value!;
-                    var parameterOptions = new List<IParameterValue>();
-                    foreach (var parameter in methodVerbPair.Key.GetParameters())
-                    {
-                        var option = AttributeHandler.GetOption(this, methodVerbPair.Key.ToString(), parameter);
-                        if (option == null)
-                            if (parameter.HasDefaultValue)
-                                parameterOptions.Add(new DefaultValueParameter(parameter));
-                            else
-                                throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{methodVerbPair.Key.DeclaringType.FullName + ":" + methodVerbPair.Key.Name}\" for the verb \"{verb.Name}\" has neither an option, nor a default value.");
-                        else
-                            parameterOptions.Add(new ParameterValueOption(parameter, option, methodVerbPair.Key));
-                    }
-
-                    _verbData.Add(verb, new VerbData(verb, methodVerbPair.Key, () => {
-                        if (instance != null)
-                            return instance;
-
-                        return AttributeHandler.GetConstructor(typeInfo).Invoke(new object[0]);
-                    }, parameterOptions));
+                    Process(methodVerbPair.Value!, methodVerbPair.Key, typeInfo);
                 }
             }
         }
@@ -54,6 +38,30 @@ namespace Colipars.Attribute.Method
         public override IEnumerable<IOption> GetOptions(IVerb verb)
         {
             return _verbData[verb].ParameterOptions.Select((x) => x.Option).WhereNotNull();
+        }
+
+        internal void Process(IVerb verb, MethodInfo method, TypeInfo typeInfo)
+        {
+            var parameterOptions = new List<IParameterValue>();
+            foreach (var parameter in method.GetParameters())
+            {
+                var option = AttributeHandler.GetOption(this, method.ToString(), parameter);
+                if (option == null)
+                    if (parameter.HasDefaultValue)
+                        parameterOptions.Add(new DefaultValueParameter(parameter));
+                    else
+                        throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{method.DeclaringType.FullName + ":" + method.Name}\" for the verb \"{verb.Name}\" has neither an option, nor a default value.");
+                else
+                    parameterOptions.Add(new ParameterValueOption(parameter, option, method));
+            }
+
+            _verbData.Add(verb, new VerbData(verb, method, () =>
+            {
+                if (_instance != null)
+                    return _instance;
+
+                return AttributeHandler.GetConstructor(typeInfo).Invoke([]);
+            }, parameterOptions));
         }
 
         /// <summary>
@@ -72,11 +80,7 @@ namespace Colipars.Attribute.Method
             if (method == null)
                 throw new MissingMethodException(typeof(T).FullName, methodName);
 
-            var verb = GetVerbFromMethod(typeof(T).GetMethod(methodName));
-            if (verb == null)
-                throw new NoVerbException($"The method \"{method.Name}\" has no verb attribute.");
-
-            DefaultVerb = verb;
+            _defaultMethod = method;
         }
 
         public static IVerb? GetVerbFromMethod(MethodInfo method) => method.GetCustomAttribute<VerbAttribute>(inherit: true);

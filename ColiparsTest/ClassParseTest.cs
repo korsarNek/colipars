@@ -184,6 +184,13 @@ namespace Colipars.Test
             CollectionAssert.AreEqual(new[] { new Wrapper() { number = 10 }, new Wrapper() { number = 20 } }, listCommand.Numbers.ToArray());
         }
 
+        [TestMethod]
+        public void CallDefaultHandlerWithoutArgs()
+        {
+            var command = Cli.Setup.ClassAttributes<EmptyCommand>(c => c.UseAsDefault<EmptyCommand>()).Parse([]).GetCustomObject();
+            Assert.IsInstanceOfType<EmptyCommand>(command);
+        }
+
         [Verb("test", Description = "Example description")]
         class Command
         {
@@ -249,6 +256,8 @@ namespace Colipars.Test
             [CollectionTypeConverter(typeof(WrapperConverter))]
             public ICollection<Wrapper> Numbers { get; } = new List<Wrapper>();
         }
+
+        class EmptyCommand {}
 
         enum VerbosityLevel
         {
