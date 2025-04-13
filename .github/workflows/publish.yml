@@ -26,11 +26,6 @@ jobs:
             dotnet-version: 8.0.x
 
       - run: dotnet pack --configuration Release --output ${{ env.NuGetDirectory }}
-      # Download the NuGet package created in the previous job
-      - uses: actions/download-artifact@v3
-        with:
-          name: nuget
-          path: ${{ env.NuGetDirectory }}
 
       - name: Publish NuGet package
         run: |
