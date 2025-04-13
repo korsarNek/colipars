@@ -19,9 +19,25 @@ namespace Colipars.Console
             return "--" + parameter;
         }
 
-        public string Parse(string parameter)
+        public ParameterAndValue Parse(string parameter)
         {
-            return parameter.TrimStart('-', '/');
+            int equalIndex = parameter.IndexOf('=');
+            if (equalIndex != -1)
+            {
+                return new ParameterAndValue(parameter.Substring(0, equalIndex).TrimStart('-', '/'), parameter.Substring(equalIndex + 1));
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (parameter.StartsWith("/") || parameter.StartsWith("-"))
+                {
+                    return new ParameterAndValue(parameter.TrimStart('-', '/'), null);
+                }
+            }
+            else
+            {
+                return new ParameterAndValue(parameter.TrimStart('-', '/'), null);
+            }
+            return new ParameterAndValue(null, parameter);
         }
     }
 }

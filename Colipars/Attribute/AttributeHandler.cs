@@ -43,12 +43,12 @@ namespace Colipars.Attribute
             for (int i = 0; i < argsArray.Length; i++)
             {
                 var argument = argsArray[i];
-                var parameterName = _parameterFormatter.Parse(argument);
+                var parameterAndValue = _parameterFormatter.Parse(argument);
 
-                if (HandleNamedOption(argsArray, ref i, parameterName, providedOptions, namedOptions)) { continue; }
-                else if (HandleFlagOption(parameterName, providedOptions, flagOptions)) { continue; }
+                if (HandleNamedOption(argsArray, ref i, parameterAndValue, providedOptions, namedOptions)) { continue; }
+                else if (HandleFlagOption(parameterAndValue, providedOptions, flagOptions)) { continue; }
                 else if (HandlePositionOption(argument, providedOptions, positionalOptions, ref positionalArgumentCount)) { continue; }
-                else if (HandleNamedCollectionOption(argsArray, ref i, parameterName, providedOptions, namedCollectionOptions, flagOptions, namedOptions)) { continue; }
+                else if (HandleNamedCollectionOption(argsArray, ref i, parameterAndValue, providedOptions, namedCollectionOptions, flagOptions, namedOptions)) { continue; }
                 {
                     optionValues = new OptionAndValue[0];
                     errors = new IError[] { new OptionForArgumentNotFoundError(verb, argument, positionalArgumentCount) };
@@ -62,14 +62,14 @@ namespace Colipars.Attribute
                 var providedOption = providedOptions.FirstOrDefault((o) => o.Option == requiredOption);
                 if (providedOption == null)
                 {
-                    optionValues = new OptionAndValue[0];
-                    errors = new IError[] { new RequiredParameterMissingError(verb, requiredOption.Name) };
+                    optionValues = [];
+                    errors = [new RequiredParameterMissingError(verb, requiredOption.Name)];
                     return false;
                 }
                 else if (providedOption.Option is NamedCollectionOptionAttribute collectionOption && providedOption.ValueAsList().Count < collectionOption.MinimumCount)
                 {
-                    optionValues = new OptionAndValue[0];
-                    errors = new IError[] { new NotEnoughElementsError(verb, collectionOption.Name, collectionOption.MinimumCount) };
+                    optionValues = [];
+                    errors = [new NotEnoughElementsError(verb, collectionOption.Name, collectionOption.MinimumCount)];
                     return false;
                 }
             }
@@ -132,16 +132,19 @@ namespace Colipars.Attribute
             return true;
         }
 
-        private bool HandleFlagOption(string parameterName, List<OptionAndValue> providedOptions, IEnumerable<FlagOptionAttribute> flagOptions)
+        private bool HandleFlagOption(ParameterAndValue parameterAndValue, List<OptionAndValue> providedOptions, IEnumerable<FlagOptionAttribute> flagOptions)
         {
-            var flagOption = GetFlagOption(parameterName, flagOptions);
+            if (parameterAndValue.Value != null || parameterAndValue.Parameter == null)
+                return false;
+
+            var flagOption = GetFlagOption(parameterAndValue.Parameter, flagOptions);
             if (flagOption != null)
             {
                 //GetValueType handelt nur NamedCollections, also wofür brauche ich das hier?
                 if (_memberTypeFromOption(flagOption) != typeof(bool))
                 {
                     //Use parameterName not the unparsed argument.
-                    providedOptions.Add(new OptionAndValue(flagOption, _valueConverter(flagOption, parameterName)));
+                    providedOptions.Add(new OptionAndValue(flagOption, _valueConverter(flagOption, parameterAndValue.Parameter)));
                 }
                 else
                 {
@@ -168,38 +171,60 @@ namespace Colipars.Attribute
             return false;
         }
 
-        private bool HandleNamedOption(string[] arguments, ref int argumentCounter, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<NamedOptionAttribute> namedOptions)
+        private bool HandleNamedOption(string[] arguments, ref int argumentCounter, ParameterAndValue parameterAndValue, List<OptionAndValue> providedOptions, IEnumerable<NamedOptionAttribute> namedOptions)
         {
-            var namedOption = GetOption(parameterName, namedOptions);
-            if (namedOption != null)
+            if (parameterAndValue.Parameter != null)
             {
-                argumentCounter++;
-                providedOptions.Add(new OptionAndValue(namedOption, _valueConverter(namedOption, arguments[argumentCounter])));
+                var namedOption = GetOption(parameterAndValue.Parameter, namedOptions);
+                if (namedOption != null)
+                {
+                    if (parameterAndValue.Value != null)
+                    {
+                        providedOptions.Add(new OptionAndValue(namedOption, _valueConverter(namedOption, parameterAndValue.Value)));
 
-                return true;
+                        return true;
+                    }
+                    else
+                    {
+                        argumentCounter++;
+                        providedOptions.Add(new OptionAndValue(namedOption, _valueConverter(namedOption, arguments[argumentCounter])));
+
+                        return true;
+                    }
+                }
             }
 
             return false;
         }
 
-        private bool HandleNamedCollectionOption(string[] arguments, ref int argumentCounter, string parameterName, List<OptionAndValue> providedOptions, IEnumerable<NamedCollectionOptionAttribute> namedCollectionOptions, IEnumerable<FlagOptionAttribute> flagOptions, IEnumerable<NamedOptionAttribute> namedOptions)
+        private bool HandleNamedCollectionOption(string[] arguments, ref int argumentCounter, ParameterAndValue parameterAndValue, List<OptionAndValue> providedOptions, IEnumerable<NamedCollectionOptionAttribute> namedCollectionOptions, IEnumerable<FlagOptionAttribute> flagOptions, IEnumerable<NamedOptionAttribute> namedOptions)
         {
-            var namedCollectionOption = GetOption(parameterName, namedCollectionOptions);
+            if (parameterAndValue.Parameter == null)
+                return false;
+
+            var namedCollectionOption = GetOption(parameterAndValue.Parameter, namedCollectionOptions);
             if (namedCollectionOption != null)
             {
                 List<object> list = new List<object>();
-                while (argumentCounter + 1 < arguments.Length)
+                if (parameterAndValue.Value != null)
                 {
-                    argumentCounter++;
-                    parameterName = _parameterFormatter.Parse(arguments[argumentCounter]);
-
-                    if (GetOption(parameterName, namedCollectionOptions) != null || GetOption(parameterName, namedOptions) != null || GetFlagOption(parameterName, flagOptions) != null)
+                    list.AddRange(parameterAndValue.Value.Split(',').Select(v => _valueConverter(namedCollectionOption, v)));
+                }
+                else
+                {
+                    while (argumentCounter + 1 < arguments.Length)
                     {
-                        argumentCounter--;
-                        break;
-                    }
+                        argumentCounter++;
+                        var subParameterAndValue = _parameterFormatter.Parse(arguments[argumentCounter]);
 
-                    list.Add(_valueConverter(namedCollectionOption, arguments[argumentCounter]));
+                        if (subParameterAndValue.Parameter != null && (GetOption(subParameterAndValue.Parameter, namedCollectionOptions) != null || GetOption(subParameterAndValue.Parameter, namedOptions) != null || GetFlagOption(subParameterAndValue.Parameter, flagOptions) != null))
+                        {
+                            argumentCounter--;
+                            break;
+                        }
+
+                        list.Add(_valueConverter(namedCollectionOption, arguments[argumentCounter]));
+                    }
                 }
 
                 providedOptions.Add(new OptionAndValue(namedCollectionOption, list));

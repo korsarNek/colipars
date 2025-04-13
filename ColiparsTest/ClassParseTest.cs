@@ -25,6 +25,24 @@ namespace Colipars.Test
         }
 
         [TestMethod]
+        public void ParseNamedEqualSign()
+        {
+            var command = Parsers.Setup.ClassAttributes<Command>().Parse("test --value=test -n=0.42".Split()).GetCustomObject();
+
+            Assert.AreEqual("test", command.Value);
+            Assert.AreEqual(0.42, command.Number);
+        }
+
+        [TestMethod]
+        public void ParseNamedNestedEqualSign()
+        {
+            var command = Parsers.Setup.ClassAttributes<Command>().Parse("test --value=test=aValue -n=0.42".Split()).GetCustomObject();
+
+            Assert.AreEqual("test=aValue", command.Value);
+            Assert.AreEqual(0.42, command.Number);
+        }
+
+        [TestMethod]
         public void ShowGeneralHelp()
         {
             var text = new StringBuilder();
@@ -57,6 +75,15 @@ namespace Colipars.Test
         public void ParseMixed()
         {
             var command = Parsers.Setup.ClassAttributes<PositionalAndNamedCommand>((c) => c.UseAsDefault<PositionalAndNamedCommand>()).Parse("-f true false".Split()).GetCustomObject();
+
+            Assert.AreEqual(true, command.IsFlagged);
+            Assert.AreEqual(false, command.AnotherFlag);
+        }
+
+        [TestMethod]
+        public void ParseMixedEqualSign()
+        {
+            var command = Parsers.Setup.ClassAttributes<PositionalAndNamedCommand>((c) => c.UseAsDefault<PositionalAndNamedCommand>()).Parse("-f=true false".Split()).GetCustomObject();
 
             Assert.AreEqual(true, command.IsFlagged);
             Assert.AreEqual(false, command.AnotherFlag);
@@ -99,6 +126,16 @@ namespace Colipars.Test
         public void ParseListArgument()
         {
             var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 -20 4".Split());
+            var listCommand = result.GetCustomObject();
+
+            Assert.AreEqual(3, listCommand.Numbers.Count);
+            CollectionAssert.AreEqual(new[] { 10, -20, 4 }, listCommand.Numbers.ToArray());
+        }
+
+        [TestMethod]
+        public void ParseListArgumentCommas()
+        {
+            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n=10,-20,4".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(3, listCommand.Numbers.Count);
