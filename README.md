@@ -6,6 +6,12 @@ Depends on .Net Standard 2.0
 
 Has a default implementation to output to the console and get its configuration from attributes on a classes, but can be extended to output to something else or fetch its configuration from configuration files or other sources.
 
+## How to install
+
+```sh
+dotnet add package colipars
+```
+
 ## Examples
 
 ### Named arguments
