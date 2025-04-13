@@ -33,16 +33,6 @@ namespace Colipars.Attribute.Class
         #region Map
 
         /// <summary>
-        /// Maps the verb object to an exit code.
-        /// </summary>
-        /// <param name="verbHandler"></param>
-        /// <returns></returns>
-        public int Map(Func<IVerb, int> verbHandler)
-        {
-            return Map(verbHandler, _defaultErrorHandler);
-        }
-
-        /// <summary>
         /// Maps the options object to an exit code.
         /// </summary>
         /// <typeparam name="TOption"></typeparam>
@@ -71,20 +61,6 @@ namespace Colipars.Attribute.Class
         #endregion
 
         #region Map with error handler
-
-        public int Map(Func<IVerb, int> verbHandler, ErrorHandler errorHandler)
-        {
-            if (verbHandler == null) throw new ArgumentNullException(nameof(verbHandler));
-            if (errorHandler == null) throw new ArgumentNullException(nameof(errorHandler));
-
-            return MapInternal(() =>
-            {
-                if (Verb == null)
-                    throw new LogicException("No verb exists for the parse result, but also no errors.");
-
-                return verbHandler(Verb);
-            }, errorHandler);
-        }
 
         public int Map<TOption>(Func<TOption, int> optionHandler, ErrorHandler errorHandler)
         {
