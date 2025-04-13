@@ -133,9 +133,29 @@ namespace Colipars.Test
         }
 
         [TestMethod]
+        public void ParseListArgumentMultipleTimes()
+        {
+            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n 10 -n -20 4".Split());
+            var listCommand = result.GetCustomObject();
+
+            Assert.AreEqual(3, listCommand.Numbers.Count);
+            CollectionAssert.AreEqual(new[] { 10, -20, 4 }, listCommand.Numbers.ToArray());
+        }
+
+        [TestMethod]
         public void ParseListArgumentCommas()
         {
             var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n=10,-20,4".Split());
+            var listCommand = result.GetCustomObject();
+
+            Assert.AreEqual(3, listCommand.Numbers.Count);
+            CollectionAssert.AreEqual(new[] { 10, -20, 4 }, listCommand.Numbers.ToArray());
+        }
+
+        [TestMethod]
+        public void ParseListArgumentMixed()
+        {
+            var result = Parsers.Setup.ClassAttributes<ListCommand>((c) => c.UseAsDefault<ListCommand>()).Parse("-n=10,-20 -n 4".Split());
             var listCommand = result.GetCustomObject();
 
             Assert.AreEqual(3, listCommand.Numbers.Count);

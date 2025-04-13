@@ -205,10 +205,24 @@ namespace Colipars.Attribute
             var namedCollectionOption = GetOption(parameterAndValue.Parameter, namedCollectionOptions);
             if (namedCollectionOption != null)
             {
-                List<object> list = new List<object>();
+                // option has already been added before, then we extend it.
+                IList list;
+                var existingOption = providedOptions.Find(o => o.Option == namedCollectionOption);
+                if (existingOption != null)
+                {
+                    list = existingOption.ValueAsList();
+                }
+                else
+                {
+                    list = new List<object>();
+                }
+                
                 if (parameterAndValue.Value != null)
                 {
-                    list.AddRange(parameterAndValue.Value.Split(',').Select(v => _valueConverter(namedCollectionOption, v)));
+                    foreach (var element in parameterAndValue.Value.Split(','))
+                    {
+                        list.Add(_valueConverter(namedCollectionOption, element));
+                    }
                 }
                 else
                 {
@@ -227,7 +241,9 @@ namespace Colipars.Attribute
                     }
                 }
 
-                providedOptions.Add(new OptionAndValue(namedCollectionOption, list));
+                if (existingOption == null)
+                    providedOptions.Add(new OptionAndValue(namedCollectionOption, list));
+                
                 return true;
             }
 

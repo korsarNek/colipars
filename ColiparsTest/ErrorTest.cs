@@ -67,7 +67,7 @@ namespace Colipars.Test
         public void WriteErrorToConsoleIfRequiredOptionIsMissing()
         {
             Mock<ErrorHandler> mock = new Mock<ErrorHandler>();
-            mock.Setup(a => a(It.Is<IError[]>((errors) => errors.Length == 1 && errors.First().GetType() == typeof(RequiredParameterMissingError)))).Returns(1);
+            mock.Setup(a => a(It.Is<IEnumerable<IError>>((errors) => errors.Count() == 1 && errors.First().GetType() == typeof(RequiredParameterMissingError)))).Returns(1);
 
             Parsers.Setup.ClassAttributes<RequiredOptionCommand>((c) =>
             {

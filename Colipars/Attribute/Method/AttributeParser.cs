@@ -16,7 +16,7 @@ namespace Colipars.Attribute.Method
 
         public AttributeParser(AttributeConfiguration configuration, IParameterFormatter parameterFormatter, IValueConverter valueConverter, IHelpPresenter helpPresenter)
         {
-            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            Configuration = configuration;
             _attributeHandler = new AttributeHandler(configuration, parameterFormatter,
                 (option, value) =>
                 {
@@ -25,7 +25,7 @@ namespace Colipars.Attribute.Method
                 },
                 (option) => configuration.GetParameterValueOption(option).ParameterInfo.ParameterType
             );
-            _helpPresenter = helpPresenter ?? throw new ArgumentNullException(nameof(helpPresenter));
+            _helpPresenter = helpPresenter;
         }
 
         public AttributeConfiguration Configuration { get; }
