@@ -8,7 +8,6 @@ on:
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_NOLOGO: true
-  NuGetDirectory: ${{ github.workspace}}/nuget
 
 defaults:
   run:
@@ -25,15 +24,11 @@ jobs:
         with:
             dotnet-version: 8.0.x
 
-      - name: Restore dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore
-      - name: Package
-        run: dotnet pack --configuration Release --output ${{ env.NuGetDirectory }}
+      - name: Release Build
+        run: dotnet build --configuration Release
 
       - name: Publish NuGet package
         run: |
-          foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
+          foreach($file in (Get-ChildItem "${{ github.workspace}}/Colipars/bin/Release" -Include *.nupkg)) {
               dotnet nuget push $file --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json
           }
