@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>0.12.0</Version>
+    <Version>0.13.0</Version>
     <Description>COmmand LIne PARSer</Description>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/korsarNek/colipars</PackageProjectUrl>
@@ -21,8 +21,8 @@
     <NullableContextOptions>enable</NullableContextOptions>
     <LangVersion>12.0</LangVersion>
     <WarningsAsErrors>NU1605,8632,8618,8625,8603,8601,8602,8612,8604,8620,8600,8619</WarningsAsErrors>
-    <AssemblyVersion>0.12.0.0</AssemblyVersion>
-    <FileVersion>0.12.0.0</FileVersion>
+    <AssemblyVersion>0.13.0.0</AssemblyVersion>
+    <FileVersion>0.13.0.0</FileVersion>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
