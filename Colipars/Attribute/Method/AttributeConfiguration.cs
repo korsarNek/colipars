@@ -23,6 +23,7 @@ namespace Colipars.Attribute.Method
 
                 foreach (var methodVerbPair in typeInfo.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).Select((x) => new KeyValuePair<MethodInfo, IVerb?>(x, GetVerbFromMethod(x))).Where((x) => x.Value != null))
                 {
+                    var verb = methodVerbPair.Value!;
                     var parameterOptions = new List<IParameterValue>();
                     foreach (var parameter in methodVerbPair.Key.GetParameters())
                     {
@@ -31,12 +32,12 @@ namespace Colipars.Attribute.Method
                             if (parameter.HasDefaultValue)
                                 parameterOptions.Add(new DefaultValueParameter(parameter));
                             else
-                                throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{methodVerbPair.Key.DeclaringType.FullName + ":" + methodVerbPair.Key.Name}\" for the verb \"{methodVerbPair.Value.Name}\" has neither an option, nor a default value.");
+                                throw new InvalidOperationException($"The parameter \"{parameter.Name}\" on \"{methodVerbPair.Key.DeclaringType.FullName + ":" + methodVerbPair.Key.Name}\" for the verb \"{verb.Name}\" has neither an option, nor a default value.");
                         else
                             parameterOptions.Add(new ParameterValueOption(parameter, option, methodVerbPair.Key));
                     }
 
-                    _verbData.Add(methodVerbPair.Value, new VerbData(methodVerbPair.Value, methodVerbPair.Key, () => {
+                    _verbData.Add(verb, new VerbData(verb, methodVerbPair.Key, () => {
                         if (instance != null)
                             return instance;
 

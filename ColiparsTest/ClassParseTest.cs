@@ -131,7 +131,7 @@ namespace Colipars.Test
         class Command
         {
             [NamedOption("value", Description = "Any random value")]
-            public string Value { get; set; }
+            public string Value { get; set; } = "";
 
             [NamedOption(nameof(Number), Description = "A floating point value.", Alias = "n")]
             public double Number { get; set; }
@@ -202,7 +202,7 @@ namespace Colipars.Test
 
         class VerbosityLevelConverter : TypeConverter
         {
-            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+            public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
             {
                 if (sourceType == typeof(string))
                     return true;
@@ -210,7 +210,7 @@ namespace Colipars.Test
                 return base.CanConvertFrom(context, sourceType);
             }
 
-            public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+            public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
             {
                 if (value is string text)
                 {

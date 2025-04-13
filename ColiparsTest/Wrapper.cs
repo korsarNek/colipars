@@ -12,7 +12,7 @@ namespace Colipars.Test
     {
         public int number;
 
-        public bool Equals(Wrapper other)
+        public bool Equals(Wrapper? other)
         {
             if (other == null)
                 return false;
@@ -20,7 +20,7 @@ namespace Colipars.Test
             return other.number == number;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Wrapper wrapper)
                 return Equals(wrapper);
@@ -41,7 +41,7 @@ namespace Colipars.Test
 
     class WrapperConverter : TypeConverter
     {
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         {
             if (sourceType == typeof(string))
                 return true;
@@ -49,7 +49,7 @@ namespace Colipars.Test
             return base.CanConvertFrom(context, sourceType);
         }
 
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
         {
             if (value is string text)
             {
