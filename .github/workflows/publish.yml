@@ -35,9 +35,6 @@ jobs:
       - name: Add GitHub Package Reference
         run: dotnet nuget add source --username korsarNek --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/korsarNek/index.json"
 
-      - name: Add NuGet Package Reference
-        run: dotnet nuget add source --name nuget "https://api.nuget.org/v3/index.json"
-
       - name: Publish NuGet Package
         run: |
           foreach($file in (Get-ChildItem "${{ github.workspace }}/Colipars/bin/Release" -Recurse -Include *.nupkg)) {
