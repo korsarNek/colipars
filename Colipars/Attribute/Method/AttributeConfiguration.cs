@@ -9,7 +9,7 @@ using Colipars.Internal;
 
 namespace Colipars.Attribute.Method
 {
-    public class AttributeConfiguration : Configuration
+    public partial class AttributeConfiguration : Configuration
     {
         private readonly Dictionary<IVerb, VerbData> _verbData = [];
         private readonly IServiceProvider _serviceProvider;
@@ -65,15 +65,14 @@ namespace Colipars.Attribute.Method
         }
 
         /// <summary>
-        /// Sets the default verb to the given method if none was provided through the arguments.
-        /// The method needs to have a <see cref="VerbAttribute"/> on it.
+        /// Sets the default method to use if none was provided through arguments.
+        /// 
+        /// The referenced method must be public, otherwise it might have been removed from the compiled code,
+        /// or use one of the other UseAsDefault overloads.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="methodName"></param>
-        /// <exception cref="System.Reflection.AmbiguousMatchException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
         /// <exception cref="System.MissingMethodException"></exception>
-        /// <exception cref="Colipars.Attribute.NoVerbException"></exception>
         public void UseAsDefault<T>(string methodName)
         {
             var method = typeof(T).GetMethod(methodName);
@@ -82,6 +81,8 @@ namespace Colipars.Attribute.Method
 
             _defaultMethod = method;
         }
+
+        // Other UseAsDefault come from CodeGenerator
 
         public static IVerb? GetVerbFromMethod(MethodInfo method) => method.GetCustomAttribute<VerbAttribute>(inherit: true);
 

@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>0.13.1</Version>
+    <Version>0.14.0</Version>
+    <AssemblyVersion>0.14.0</AssemblyVersion>
+    <FileVersion>0.14.0</FileVersion>
     <Description>COmmand LIne PARSer</Description>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/korsarNek/colipars</PackageProjectUrl>
@@ -13,17 +14,17 @@
     <NeutralLanguage>en-001</NeutralLanguage>
     <Authors>korsarNek</Authors>
     <Company />
-    <PackageReleaseNotes>- added option to show the help if no arguments have been given
-- changing services when setting up parsers does not influence the global service list
-- changed the error handler service from an interface to a delegate</PackageReleaseNotes>
     <NullableReferenceTypes>true</NullableReferenceTypes>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <LangVersion>12.0</LangVersion>
     <WarningsAsErrors>NU1605,8632,8618,8625,8603,8601,8602,8612,8604,8620,8600,8619</WarningsAsErrors>
-    <AssemblyVersion>0.13.1</AssemblyVersion>
-    <FileVersion>0.13.1</FileVersion>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -46,5 +47,13 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ColiparsGenerator\ColiparsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

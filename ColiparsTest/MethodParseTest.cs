@@ -98,6 +98,12 @@ namespace Colipars.Test
             Assert.AreEqual(101, Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Boolean))).Parse("--result".Split()).Execute());
         }
 
+        [TestMethod]
+        public void DirectFunc()
+        {
+            Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault(Container.Func)).Parse([]).Execute();
+        }
+
         class Container
         {
             public int Field = 0;
@@ -167,6 +173,11 @@ namespace Colipars.Test
             }
 
             public static int Empty()
+            {
+                return 0;
+            }
+
+            public static int Func()
             {
                 return 0;
             }
