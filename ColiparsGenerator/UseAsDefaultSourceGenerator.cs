@@ -13,10 +13,11 @@ class UseAsDefaultSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        List<(string, string)> parameterVariations = [
+        /*List<(string, string)> parameterVariations = [
             ("", "Action"),
             ("", "Func<int>"),
             ("", "Func<bool>"),
+            ("", "Func<Task>"),
             ("", "Func<Task<int>>"),
             ("", "Func<Task<bool>>"),
         ];
@@ -28,6 +29,7 @@ class UseAsDefaultSourceGenerator : IIncrementalGenerator
                 ($"<{t}>", $"Action<{t}>"),
                 ($"<{t}>", $"Func<{t}, int>"),
                 ($"<{t}>", $"Func<{t}, bool>"),
+                ($"<{t}>", $"Func<{t}, Task>"),
                 ($"<{t}>", $"Func<{t}, Task<int>>"),
                 ($"<{t}>", $"Func<{t}, Task<bool>>")
             ]);
@@ -53,6 +55,6 @@ class UseAsDefaultSourceGenerator : IIncrementalGenerator
             }}
         ");
 
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource("UseAsDefault.g.cs", SourceText.From(code.ToString(), Encoding.UTF8)));
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource("UseAsDefault.g.cs", SourceText.From(code.ToString(), Encoding.UTF8)));*/
     }
 }

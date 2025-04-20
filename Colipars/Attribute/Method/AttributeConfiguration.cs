@@ -82,6 +82,16 @@ namespace Colipars.Attribute.Method
             _defaultMethod = method;
         }
 
+        public void UseAsDefault(MethodInfo method)
+        {
+            _defaultMethod = method;
+        }
+
+        public void UseAsDefault(Delegate method)
+        {
+            _defaultMethod = method.GetMethodInfo();
+        }
+
         // Other UseAsDefault come from CodeGenerator
 
         public static IVerb? GetVerbFromMethod(MethodInfo method) => method.GetCustomAttribute<VerbAttribute>(inherit: true);

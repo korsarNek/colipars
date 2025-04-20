@@ -93,15 +93,39 @@ namespace Colipars.Test
         }
 
         [TestMethod]
-        public void NamedBooleanUsedAsFlag()
+        public void DefaultNamedBooleanUsedAsFlag()
         {
             Assert.AreEqual(101, Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault<Container>(nameof(Container.Boolean))).Parse("--result".Split()).Execute());
         }
 
         [TestMethod]
-        public void DirectFunc()
+        public void DefaultDirectParameterless()
         {
             Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault(Container.Func)).Parse([]).Execute();
+        }
+
+        [TestMethod]
+        public void DefaultDirectParameterized()
+        {
+            Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault(Container.Parameterized)).Parse([]).ExecuteAsync();
+        }
+
+        [TestMethod]
+        public void DefaultMethodInfo()
+        {
+            Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault(typeof(Container).GetMethod(nameof(Container.Func))!)).Parse([]).Execute();
+        }
+
+        [TestMethod]
+        public void DefaultCallback()
+        {
+            Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault(([NamedOption("myParam")]string myParam) => 1)).Parse([]).Execute();
+        }
+
+        [TestMethod]
+        public void DefaultGeneric()
+        {
+            Cli.Setup.MethodAttributes(cfg => cfg.UseAsDefault(Container.Parameterized)).Parse([]).ExecuteAsync();
         }
 
         class Container
@@ -180,6 +204,13 @@ namespace Colipars.Test
             public static int Func()
             {
                 return 0;
+            }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+            public static async Task Parameterized([NamedOption("param")] string param)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+            {
+
             }
         }
     }
